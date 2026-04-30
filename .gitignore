@@ -1,0 +1,20 @@
+.env
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+dist/
+build/
+*.egg-info/
+.idea/
+.vscode/
+output/
+*.pdf
+!docs/*.pdf
+
+# Claude Code per-user settings (project-level settings.json is fine to commit)
+.claude/settings.local.json
