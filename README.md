@@ -72,6 +72,10 @@ Semua panggilan REST pasal.id dilewatkan melalui SQLite cache:
 
 Lokasi default: `~/.legawa/cache.db`. Override dengan `LEGAWA_CACHE_PATH=/custom/path.db`.
 
+## Roadmap
+
+- [ ] **Pemantau Berita** — agen kelima untuk monitoring isu komisi dari sumber berita Indonesia (Kompas, Tempo, Detik, Antara). SMALL untuk klasifikasi & ekstraksi isu, BIG untuk daily/weekly digest dengan tautan ke peraturan terkait via pasal.id. Tambahkan setelah keempat agen pertama dipakai di lapangan.
+
 ## Catatan
 
 - Setiap klaim agen tentang peraturan existing dilengkapi `frbr_uri` pasal.id agar dapat diverifikasi.
