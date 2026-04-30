@@ -2,12 +2,23 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from typing import Optional
 
 import typer
 from rich.console import Console
 from rich.markdown import Markdown
+from rich.markup import escape
+
+# Windows legacy console defaults to cp1252 which can't encode '✓', '→', etc.
+# Reconfigure stdio to UTF-8 with a tolerant fallback so output never crashes.
+if sys.platform == "win32":
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8", errors="replace")  # type: ignore[union-attr]
+        except (AttributeError, OSError):
+            pass
 
 from .agents import analis_ruu, peneliti, penyusun, surat
 from .config import load_settings
@@ -154,21 +165,36 @@ def health() -> None:
     for label, llm in [("big", pool.big), ("small", pool.small)]:
         try:
             reply = llm.chat(
-                [{"role": "user", "content": "Jawab dengan satu kata: OK"}],
-                max_tokens=8,
+                [
+                    {
+                        "role": "system",
+                        "content": "Balas singkat dan langsung tanpa berpikir panjang.",
+                    },
+                    {"role": "user", "content": "Jawab dengan satu kata: OK"},
+                ],
+                max_tokens=256,
                 temperature=0.0,
             )
-            console.print(f"[green]✓ {label}: {reply.strip()[:40]}[/green]")
+            # llm.chat already strips <think>...</think>; reply may still be empty
+            # if the entire token budget was consumed by reasoning.
+            visible = reply.strip()
+            if not visible:
+                console.print(
+                    f"[yellow]! {label}: balasan kosong setelah strip thinking "
+                    f"(naikkan max_tokens atau matikan thinking mode di llama.cpp)[/yellow]"
+                )
+            else:
+                console.print(f"[green]OK {label}: {escape(visible[:60])}[/green]")
         except Exception as e:  # noqa: BLE001
-            console.print(f"[red]✗ {label}: {e}[/red]")
+            console.print(f"[red]FAIL {label}: {escape(str(e))}[/red]")
 
     try:
         with PasalClient(settings) as pasal:
             r = pasal.search("ketenagakerjaan", limit=1)
         total = r.get("total") or len(r.get("results", []) or [])
-        console.print(f"[green]✓ pasal.id: query 'ketenagakerjaan' → {total} hit[/green]")
+        console.print(f"[green]OK pasal.id: query 'ketenagakerjaan' -> {total} hit[/green]")
     except Exception as e:  # noqa: BLE001
-        console.print(f"[red]✗ pasal.id: {e}[/red]")
+        console.print(f"[red]FAIL pasal.id: {escape(str(e))}[/red]")
 
 
 if __name__ == "__main__":
