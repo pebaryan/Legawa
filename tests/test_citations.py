@@ -10,6 +10,7 @@ if str(SRC) not in sys.path:
 
 from legawa.tools.citations import (
     CitationCheck,
+    _topics_overlap,
     extract_citations,
     format_checks,
     verify_citation,
@@ -95,6 +96,32 @@ class CitationTests(unittest.TestCase):
         self.assertTrue(perda.found)
         self.assertEqual(perda.query, "Perda 1/2024")
         self.assertEqual(perda.frbr_uri, "akn/id/act/perda/2024/1")
+
+    def test_topics_overlap_rejects_institutional_only_match(self) -> None:
+        # Real false-positive case from gemma4 memo run: model claimed
+        # Permen 24/2018 was about audit-mechanism, but it's about Pengelolaan
+        # Arsip. They share only ministry-context tokens.
+        claim = "Mekanisme Tindak Lanjut Hasil Audit Inspektorat Jenderal Kementerian Pendidikan dan Kebudayaan"
+        title = "Pengelolaan Arsip Terjaga di Lingkungan Kementerian Pendidikan dan Kebudayaan"
+        self.assertFalse(_topics_overlap(claim, title))
+
+    def test_topics_overlap_accepts_real_topical_match(self) -> None:
+        claim = "Pengadaan Barang/Jasa Pemerintah"
+        title = "Peraturan Presiden Nomor 12 Tahun 2021 tentang Perubahan Atas Pengadaan Barang/Jasa Pemerintah"
+        self.assertTrue(_topics_overlap(claim, title))
+
+    def test_topics_overlap_acronym_vs_spelled_out_still_works(self) -> None:
+        # Ensure the institutional filter doesn't break the acronym path —
+        # UU 17/2014 is genuinely about MPR/DPR/DPD/DPRD.
+        claim = "MPR, DPR, DPD, dan DPRD"
+        title = "Majelis Permusyawaratan Rakyat, Dewan Perwakilan Rakyat, Dewan Perwakilan Daerah, dan Dewan Perwakilan Rakyat Daerah"
+        self.assertTrue(_topics_overlap(claim, title))
+
+    def test_topics_overlap_uninformative_title_falls_back(self) -> None:
+        # Echoed pasal.id title — no usable signal — accept by existence-only.
+        claim = "Sistem Pendidikan Nasional"
+        title = "Undang-Undang Nomor 20 Tahun 2003 tentang Undang-Undang Nomor 20 Tahun 2003"
+        self.assertTrue(_topics_overlap(claim, title))
 
     def test_verify_citations_formats_mixed_results(self) -> None:
         fake = FakePasalClient(

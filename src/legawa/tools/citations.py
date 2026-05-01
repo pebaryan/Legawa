@@ -101,6 +101,34 @@ _STOP_TOKENS = frozenset(
     }
 )
 
+# Tokens that name an institution, sector, or generic government context.
+# These appear in the *title* of nearly every regulation issued by that
+# institution (e.g. "Kementerian Pendidikan" appears in every Kemendikbud
+# Permen) and in any *claim* that names the institution — so an overlap on
+# these tokens alone does not confirm topical alignment.
+#
+# Used by ``_topics_overlap`` to demand at least one *non-institutional*
+# token in common before declaring a match. Acronyms (MPR/DPR/KPK/...) are
+# kept out of this set because their expansions ARE the topic in regulations
+# whose subject is the institution itself (e.g. UU 17/2014 about MPR/DPR).
+_INSTITUTIONAL_TOKENS = frozenset(
+    {
+        # Generic government context.
+        "kementerian", "pemerintah", "pemerintahan", "negeri", "lingkungan",
+        "instansi", "lembaga", "publik", "pusat", "lingkup", "wilayah",
+        "kantor",
+        # Sector markers — when alone, signal sector not topic. Specific
+        # subject matter (audit / pengelolaan / arsip / outsourcing / etc.)
+        # is what should drive topical match, not the ministry name.
+        "pendidikan", "kebudayaan", "kesehatan", "keuangan",
+        "ketenagakerjaan", "pertanian", "perhubungan", "kehutanan",
+        "kelautan", "pertahanan", "agama", "sosial", "perindustrian",
+        "perdagangan", "ristek", "riset", "teknologi", "informasi",
+        "komunikasi", "perekonomian", "perencanaan", "pembangunan",
+    }
+)
+
+
 # Common Indonesian institutional acronyms — agents tend to use the acronym
 # while the regulation's actual title spells the institution out. We expand
 # claim-side acronyms before topical-overlap so e.g. "MPR" matches a title
@@ -169,7 +197,13 @@ def _topics_overlap(claimed: str, title: str) -> bool:
 
     claim_tokens = _significant_tokens(claimed)
     title_tokens = _significant_tokens(title)
-    if claim_tokens & title_tokens:
+
+    # Direct token overlap counts only if at least one shared token is
+    # non-institutional. This guards against false positives where claim
+    # and title share only ministry/sector context (e.g. "Kementerian
+    # Pendidikan") while their actual subjects are different.
+    overlap = claim_tokens & title_tokens
+    if overlap and (overlap - _INSTITUTIONAL_TOKENS):
         return True
 
     # Expand any claim-side acronyms and check for partial title overlap.
