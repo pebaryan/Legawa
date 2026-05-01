@@ -16,6 +16,7 @@ from pathlib import Path
 from rich.console import Console
 
 from ..llm import LLMPool
+from ..tools.citations import extract_citations_with_context, verify_citations
 from ..tools.pasal import PasalClient, TOOL_SCHEMAS, build_dispatcher
 from .base import AgentResult, ToolAgent
 
@@ -23,6 +24,9 @@ from .base import AgentResult, ToolAgent
 SYSTEM_PROMPT = """\
 Anda adalah Analis RUU senior yang membantu anggota legislatif Indonesia (DPR/DPRD)
 mengevaluasi rancangan peraturan perundang-undangan.
+
+Tanggal penyusunan: {run_date}
+Status korpus pasal.id: {corpus_watermark}
 
 Tugas Anda untuk setiap RUU yang diberikan:
 1. **Ringkasan Eksekutif** — 3–5 kalimat tentang tujuan, ruang lingkup, dan dampak utama RUU.
@@ -47,6 +51,35 @@ Aturan:
 """
 
 
+def _verify_output_citations(
+    pasal: PasalClient,
+    text: str,
+    *,
+    console: Console,
+    strict: bool,
+) -> None:
+    contexts = extract_citations_with_context(text)
+    if not contexts:
+        return
+
+    checks = verify_citations(pasal, contexts)
+    failures = [check for check in checks if not check.found]
+    if not failures:
+        return
+
+    descriptions: list[str] = []
+    for check in failures:
+        if check.note:
+            descriptions.append(f"{check.reference} ({check.note})")
+        else:
+            descriptions.append(check.reference)
+    msg = "analis-ruu: draft contains unverifiable citations: " + "; ".join(descriptions)
+    if strict:
+        console.print(f"[red]{msg}[/red]")
+        raise ValueError(msg)
+    console.print(f"[yellow]{msg}[/yellow]")
+
+
 def load_ruu_text(source: str) -> str:
     """Load RUU content from a file path (txt/md/pdf) or treat as raw text."""
     path = Path(source)
@@ -65,7 +98,10 @@ def build_agent(pool: LLMPool, pasal: PasalClient, console: Console | None = Non
     return ToolAgent(
         name="analis-ruu",
         llm=pool.big,
-        system_prompt=SYSTEM_PROMPT,
+        system_prompt=SYSTEM_PROMPT.format(
+            run_date=pool.settings.run_date,
+            corpus_watermark=pool.settings.corpus_watermark or "tidak ditentukan",
+        ),
         tools=TOOL_SCHEMAS,
         dispatcher=build_dispatcher(pasal),
         max_iters=12,
@@ -85,4 +121,11 @@ def analyze(
         text = text[:60000] + "\n\n[... teks dipotong karena panjang ...]"
     agent = build_agent(pool, pasal, console=console)
     user_input = f"Analisis RUU berikut:\n\n---\n{text}\n---"
-    return agent.run(user_input)
+    result = agent.run(user_input)
+    _verify_output_citations(
+        pasal,
+        result.output,
+        console=console or Console(),
+        strict=pool.settings.strict_citations,
+    )
+    return result

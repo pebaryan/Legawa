@@ -17,6 +17,7 @@ from __future__ import annotations
 import json
 import os
 import sqlite3
+import threading
 import time
 from pathlib import Path
 from typing import Any, Callable
@@ -37,50 +38,69 @@ def _default_cache_path() -> Path:
 
 
 class _SqliteCache:
+    """Thread-safe sqlite-backed key/value cache with TTL.
+
+    Peneliti runs parallel pasal.id queries via ThreadPoolExecutor, all of
+    which can hit this cache concurrently. We share a single connection
+    (check_same_thread=False) but serialise access with a lock — sqlite's
+    own concurrency primitives don't protect a shared connection's implicit
+    cursor state.
+    """
+
     def __init__(self, path: Path):
         path.parent.mkdir(parents=True, exist_ok=True)
         self.conn = sqlite3.connect(str(path), isolation_level=None, check_same_thread=False)
-        self.conn.execute("PRAGMA journal_mode=WAL")
-        self.conn.execute(
-            "CREATE TABLE IF NOT EXISTS cache ("
-            "  key TEXT PRIMARY KEY,"
-            "  value TEXT NOT NULL,"
-            "  expires_at INTEGER NOT NULL"
-            ")"
-        )
+        self._lock = threading.Lock()
+        with self._lock:
+            self.conn.execute("PRAGMA journal_mode=WAL")
+            self.conn.execute(
+                "CREATE TABLE IF NOT EXISTS cache ("
+                "  key TEXT PRIMARY KEY,"
+                "  value TEXT NOT NULL,"
+                "  expires_at INTEGER NOT NULL"
+                ")"
+            )
 
     def get(self, key: str) -> Any | None:
         now = int(time.time())
-        row = self.conn.execute(
-            "SELECT value, expires_at FROM cache WHERE key = ?", (key,)
-        ).fetchone()
-        if row is None:
-            return None
-        value, expires_at = row
-        if expires_at < now:
-            self.conn.execute("DELETE FROM cache WHERE key = ?", (key,))
-            return None
+        with self._lock:
+            row = self.conn.execute(
+                "SELECT value, expires_at FROM cache WHERE key = ?", (key,)
+            ).fetchone()
+            if row is None:
+                return None
+            value, expires_at = row
+            if expires_at < now:
+                self.conn.execute("DELETE FROM cache WHERE key = ?", (key,))
+                return None
         return json.loads(value)
 
     def set(self, key: str, value: Any, ttl: int) -> None:
         expires_at = int(time.time()) + ttl
-        self.conn.execute(
-            "INSERT OR REPLACE INTO cache(key, value, expires_at) VALUES (?, ?, ?)",
-            (key, json.dumps(value, ensure_ascii=False), expires_at),
-        )
+        payload = json.dumps(value, ensure_ascii=False)
+        with self._lock:
+            self.conn.execute(
+                "INSERT OR REPLACE INTO cache(key, value, expires_at) VALUES (?, ?, ?)",
+                (key, payload, expires_at),
+            )
 
     def purge_expired(self) -> int:
-        cur = self.conn.execute("DELETE FROM cache WHERE expires_at < ?", (int(time.time()),))
+        with self._lock:
+            cur = self.conn.execute(
+                "DELETE FROM cache WHERE expires_at < ?", (int(time.time()),)
+            )
         return cur.rowcount or 0
 
     def stats(self) -> dict[str, int]:
-        rows = self.conn.execute(
-            "SELECT COUNT(*), COALESCE(SUM(LENGTH(value)), 0) FROM cache"
-        ).fetchone()
+        with self._lock:
+            rows = self.conn.execute(
+                "SELECT COUNT(*), COALESCE(SUM(LENGTH(value)), 0) FROM cache"
+            ).fetchone()
         return {"entries": rows[0], "bytes": rows[1]}
 
     def close(self) -> None:
-        self.conn.close()
+        with self._lock:
+            self.conn.close()
 
 
 def _key(prefix: str, args: dict[str, Any]) -> str:

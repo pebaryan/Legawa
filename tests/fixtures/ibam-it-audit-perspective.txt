@@ -1,0 +1,24 @@
+Kepada Yth.
+Anggota DPR RI Komisi X dan Komisi III
+di Jakarta
+
+Perihal: Catatan Teknis Profesional TI atas Kasus Ibam dan Program Digitalisasi Sekolah
+
+Dengan hormat,
+
+Kami adalah sekelompok profesional teknologi informasi, auditor sistem, dan pengelola perangkat di lingkungan pendidikan. Kami menyampaikan catatan teknis ini bukan untuk menilai putusan pengadilan, melainkan untuk menjelaskan konteks teknis yang sering hilang dalam diskusi publik tentang pengadaan Chromebook dan Chrome Device Management (CDM).
+
+Dari sudut pandang operasional TI, ada beberapa aspek yang perlu dibedakan secara ketat:
+
+1. Siklus hidup perangkat. Chromebook adalah perangkat dengan masa pakai yang sangat dipengaruhi pembaruan firmware, dukungan vendor, dan ketersediaan suku cadang. Kegagalan baterai, papan induk, atau storage tidak otomatis membuktikan cacat niat pengadaan; itu harus dibaca bersama spesifikasi, SLA, dan catatan pemeliharaan.
+
+2. Log administrasi dan audit trail. Untuk menilai apakah ada penyimpangan teknis, perlu diakses serial number, activation log, CDM license history, firmware version history, dan daftar penerimaan barang di sekolah. Tanpa data ini, opini publik cenderung mencampuradukkan masalah kualitas perangkat, dukungan purna jual, dan pertanggungjawaban kebijakan.
+
+3. Konfigurasi dan manajemen perangkat. Banyak kegagalan di lapangan berasal dari pengelolaan akun, kebijakan update, atau kesalahan provisioning, bukan dari perangkat keras semata. Karena itu, investigasi teknis harus memeriksa apakah ada MDM policy, template konfigurasi, dan dokumentasi rollout yang seragam.
+
+4. Pemulihan layanan. Jika tujuan kebijakan adalah kesinambungan pembelajaran digital, fokus teknis seharusnya pada repairability, re-imaging, penggantian lisensi, dan skema dukungan after-sales, bukan hanya pada angka pengadaan awal.
+
+Kami memohon agar DPR mendorong audit teknis yang independen, berbasis data, dan terdokumentasi. Audit tersebut sebaiknya menilai perangkat, lisensi, log administrasi, dan alur pengadaan secara end-to-end agar publik memperoleh gambaran yang utuh dan adil.
+
+Hormat kami,
+Forum Profesional TI Pendidikan

@@ -78,5 +78,6 @@ class LLM:
 
 class LLMPool:
     def __init__(self, settings: Settings):
+        self.settings = settings
         self.big = LLM(settings.big)
         self.small = LLM(settings.small)

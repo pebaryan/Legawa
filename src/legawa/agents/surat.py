@@ -19,6 +19,7 @@ from pydantic import BaseModel, Field, ValidationError
 from rich.console import Console
 
 from ..llm import LLMPool
+from ..tools.citations import extract_citations_with_context, format_basis_block, verify_citations
 from ..tools.pasal import PasalClient
 
 
@@ -121,23 +122,11 @@ def _parse_triase(raw: str) -> TriaseHasil:
 def _verify_peraturan(pasal: PasalClient, refs: list[str], console: Console) -> str:
     if not refs:
         return ""
-    notes: list[str] = []
-    for ref in refs[:5]:
-        try:
-            r = pasal.search(ref, limit=3)
-            hits = r.get("results") or r.get("hits") or []
-            if hits:
-                top = hits[0]
-                title = top.get("title") or top.get("work", {}).get("title") or ref
-                frbr = top.get("frbr_uri") or top.get("work", {}).get("frbr_uri") or "-"
-                status = top.get("status") or top.get("work", {}).get("status") or "?"
-                notes.append(f"- {ref}: {title} (status: {status}, frbr_uri: {frbr})")
-            else:
-                notes.append(f"- {ref}: TIDAK DITEMUKAN di pasal.id — jangan sitasi.")
-        except Exception as e:  # noqa: BLE001
-            console.print(f"[yellow]surat: gagal verifikasi {ref}: {e}[/yellow]")
-            notes.append(f"- {ref}: verifikasi gagal, jangan sitasi.")
-    return "BASIS HUKUM:\n" + "\n".join(notes)
+    try:
+        return format_basis_block(pasal, refs)
+    except Exception as e:  # noqa: BLE001
+        console.print(f"[red]surat: gagal membangun basis hukum: {e}[/red]")
+        raise
 
 
 def triage(
@@ -197,6 +186,19 @@ def reply(
         temperature=0.4,
         max_tokens=2048,
     )
+
+    draft_contexts = extract_citations_with_context(result.balasan or "")
+    if draft_contexts:
+        checks = verify_citations(pasal, draft_contexts)
+        failures = [check for check in checks if not check.found]
+        if failures:
+            descriptions = [
+                f"{check.reference} ({check.note})" if check.note else check.reference
+                for check in failures
+            ]
+            msg = "surat: draft contains unverifiable citations: " + "; ".join(descriptions)
+            console.print(f"[red]{msg}[/red]")
+            raise ValueError(msg)
     return result
 
 

@@ -34,6 +34,9 @@ dalam Bahasa Indonesia formal dengan struktur:
 
 # Memo Riset Hukum: <topik>
 
+Tanggal penyusunan: {run_date}
+Status korpus pasal.id: {corpus_watermark}
+
 ## 1. Ringkasan Temuan
 3–5 kalimat yang menjawab inti topik.
 
@@ -55,6 +58,84 @@ Aturan:
 - Jangan mengarang nomor UU atau pasal yang tidak ada di hasil.
 - Bila hasil tidak cukup, katakan secara eksplisit di bagian "Celah".
 """
+
+
+_CANONICAL_PROBES: list[tuple[tuple[str, ...], str]] = [
+    (("tipikor", "korupsi", "gratifikasi", "suap", "konflik kepentingan"), "akn/id/act/uu/1999/31"),
+    (("tipikor", "korupsi", "gratifikasi", "suap", "konflik kepentingan"), "akn/id/act/uu/2001/20"),
+    (("pengadaan", "barang jasa", "barang/jasa", "procurement", "chromebook"), "akn/id/act/perpres/2018/16"),
+    (("pengadaan", "barang jasa", "barang/jasa", "procurement", "chromebook"), "akn/id/act/perpres/2021/12"),
+    (("outsourcing", "ketenagakerjaan", "buruh", "pekerja", "tenaga kerja"), "akn/id/act/uu/2003/13"),
+    (("outsourcing", "ketenagakerjaan", "buruh", "pekerja", "tenaga kerja"), "akn/id/act/uu/2023/6"),
+    (("outsourcing", "ketenagakerjaan", "buruh", "pekerja", "tenaga kerja"), "akn/id/act/pp/2021/35"),
+]
+
+
+def _collect_snippet(obj: Any, max_chars: int = 800) -> str:
+    parts: list[str] = []
+
+    def walk(value: Any) -> None:
+        if len(" ".join(parts)) >= max_chars:
+            return
+        if isinstance(value, str):
+            text = " ".join(value.split())
+            if text:
+                parts.append(text)
+        elif isinstance(value, dict):
+            for key in ("title", "name", "status", "frbr_uri", "text", "content", "description"):
+                if key in value:
+                    walk(value[key])
+            for key, nested in value.items():
+                if key not in {"title", "name", "status", "frbr_uri", "text", "content", "description"}:
+                    walk(nested)
+        elif isinstance(value, list):
+            for item in value:
+                walk(item)
+
+    walk(obj)
+    joined = " | ".join(dict.fromkeys(parts))
+    return joined[:max_chars]
+
+
+def _law_to_hit(law: Any, frbr_uri: str) -> dict[str, Any]:
+    title = None
+    status = None
+    if isinstance(law, dict):
+        title = law.get("title") or law.get("work", {}).get("title")
+        status = law.get("status") or law.get("work", {}).get("status")
+    return {
+        "source": "exact_probe",
+        "frbr_uri": frbr_uri,
+        "title": title or frbr_uri,
+        "status": status,
+        "excerpt": _collect_snippet(law),
+    }
+
+
+def _canonical_probe_uris(topic: str, queries: list[str]) -> list[str]:
+    blob = " ".join([topic, *queries]).lower()
+    uris: list[str] = []
+    for keywords, frbr_uri in _CANONICAL_PROBES:
+        if any(keyword in blob for keyword in keywords) and frbr_uri not in uris:
+            uris.append(frbr_uri)
+    return uris
+
+
+def _probe_exact_laws(pasal: PasalClient, topic: str, queries: list[str], console: Console) -> list[dict[str, Any]]:
+    uris = _canonical_probe_uris(topic, queries)
+    if not uris:
+        return []
+
+    console.print(f"[dim]peneliti: exact probes {uris}[/dim]")
+    hits: list[dict[str, Any]] = []
+    for frbr_uri in uris:
+        try:
+            law = pasal.get_law(frbr_uri)
+        except Exception as e:  # noqa: BLE001
+            console.print(f"[yellow]peneliti: exact probe gagal {frbr_uri}: {e}[/yellow]")
+            continue
+        hits.append(_law_to_hit(law, frbr_uri))
+    return hits
 
 
 def _expand_queries(pool: LLMPool, topic: str, console: Console) -> list[str]:
@@ -111,9 +192,14 @@ def research(
     queries = _expand_queries(pool, topic, console)
     console.print(f"[dim]queries: {queries}[/dim]")
 
+    exact_hits = _probe_exact_laws(pasal, topic, queries, console)
+
     console.print(f"[cyan]peneliti: menjalankan {len(queries)} pencarian paralel[/cyan]")
     with ThreadPoolExecutor(max_workers=min(6, len(queries))) as ex:
         batches = list(ex.map(lambda q: pasal.search(q, limit=10), queries))
+
+    if exact_hits:
+        batches = batches + [{"hits": exact_hits}]
 
     hits = _dedupe_hits(batches)
     console.print(f"[cyan]peneliti: {len(hits)} hit unik, sintesis dengan model besar[/cyan]")
@@ -121,7 +207,13 @@ def research(
     payload = {"topic": topic, "queries": queries, "hits": hits[:40]}
     output = pool.big.chat(
         [
-            {"role": "system", "content": SYNTHESIS_PROMPT},
+            {
+                "role": "system",
+                "content": SYNTHESIS_PROMPT.format(
+                    run_date=pool.settings.run_date,
+                    corpus_watermark=pool.settings.corpus_watermark or "tidak ditentukan",
+                ),
+            },
             {
                 "role": "user",
                 "content": (

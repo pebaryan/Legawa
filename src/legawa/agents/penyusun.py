@@ -12,6 +12,7 @@ from typing import Literal
 from rich.console import Console
 
 from ..llm import LLMPool
+from ..tools.citations import extract_citations_with_context, verify_citations
 from ..tools.pasal import PasalClient
 from . import peneliti
 
@@ -48,6 +49,9 @@ Anda adalah Penyusun Naskah profesional yang membantu anggota legislatif Indones
 
 Jenis dokumen: {kind}
 Pedoman gaya: {style}
+Tanggal penyusunan: {run_date}
+Status korpus pasal.id: {corpus_watermark}
+Konteks domain: {domain_constraints}
 
 Aturan umum:
 - Bahasa Indonesia formal, presisi, dan menghormati kaidah hukum.
@@ -58,6 +62,175 @@ Aturan umum:
   bersudut kurung siku (mis. [DATA BPS DAPIL]).
 - Output dalam Markdown.
 """
+
+
+# Known cases the model has weak/wrong priors on. When a topic mentions one of
+# these, prepend an authoritative fact block to the domain constraints so the
+# model can't drift to a familiar-but-wrong frame (e.g. confusing a K-12
+# procurement case with a Perguruan Tinggi governance scandal).
+_CASE_FACTS: tuple[tuple[tuple[str, ...], str], ...] = (
+    (
+        ("kasus ibam", "ibrahim arief"),
+        (
+            "FAKTA KASUS IBAM (gunakan ini sebagai sumber, jangan diabaikan): "
+            "Kasus Ibam adalah perkara korupsi pengadaan Chromebook dan Chrome Device "
+            "Management (CDM) di Kementerian Pendidikan, Kebudayaan, Riset, dan Teknologi "
+            "(Kemendikbudristek). Pelaku: Ibrahim Arief, alias Ibam — eks-konsultan Tim "
+            "Teknologi Kemendikbudristek di bawah Mendikbudristek Nadiem Makarim. Vonis: "
+            "Pengadilan Tipikor 16 April 2026 — 15 tahun penjara, denda Rp 1 miliar, uang "
+            "pengganti Rp 16,92 miliar. Distribusi Chromebook ditujukan untuk sekolah dasar "
+            "dan menengah dalam Program Digitalisasi Sekolah; INI BUKAN kasus tata kelola "
+            "Perguruan Tinggi/PTN/PTS, bukan kasus rekrutmen dosen, bukan kasus akademik. "
+            "Kerangka hukum yang dipakai: UU 31/1999 jo UU 20/2001 (Tipikor) dan "
+            "Perpres 16/2018 jo Perpres 12/2021 (Pengadaan Barang/Jasa)."
+        ),
+    ),
+)
+
+
+_K12_TRIGGERS = (
+    "sekolah dasar",
+    "sdn ",
+    " sd ",
+    "smp",
+    "sma",
+    "pendidikan dasar",
+    "pendidikan dasar dan menengah",
+    "pendidikan menengah",
+    "kemendikdasmen",
+    "kemendikbud",
+    "kemendikbudristek",
+    "kemdikbud",
+    "bos ",
+    "dana bos",
+    "chromebook",
+    "digitalisasi sekolah",
+    "program digitalisasi sekolah",
+    "kasus ibam",
+    "ibrahim arief",
+    "siswa",
+    "kepala sekolah",
+    "guru ",
+)
+
+_PT_TRIGGERS = (
+    "perguruan tinggi",
+    "ptn ",
+    " ptn",
+    "pts ",
+    " pts",
+    "kampus",
+    "rektor",
+    "dosen",
+    "uu pendidikan tinggi",
+    "uu sistem pendidikan tinggi",
+    "uu no. 12 tahun 2012",
+    "uu 12/2012",
+    "perguruan tinggi negeri",
+)
+
+
+def _derive_domain_constraints(topic: str, research_block: str = "", extra_instructions: str | None = None) -> str:
+    blob = " ".join(part for part in [topic, research_block, extra_instructions or ""] if part).lower()
+    # Pad with spaces so " sd " and " ptn " patterns match at edges.
+    padded = f" {blob} "
+    constraints: list[str] = []
+
+    # If the topic mentions a known case, prepend authoritative facts. These
+    # override the model's prior — the most consequential domain-drift fix.
+    for keywords, facts in _CASE_FACTS:
+        if any(keyword in padded for keyword in keywords):
+            constraints.append(facts)
+
+    has_k12 = any(term in padded for term in _K12_TRIGGERS)
+    has_pt = any(term in padded for term in _PT_TRIGGERS)
+
+    if has_k12 and not has_pt:
+        constraints.append(
+            "Fokus pada pendidikan dasar/menengah dan akuntabilitas pengadaan sekolah. "
+            "JANGAN bergeser ke pendidikan tinggi, perguruan tinggi (PTN/PTS), kampus, atau rektorat — "
+            "isu ini bukan tentang perguruan tinggi."
+        )
+    elif has_pt and not has_k12:
+        constraints.append(
+            "Fokus pada pendidikan tinggi (PTN/PTS) dan tata kelola kampus. "
+            "JANGAN bergeser ke pendidikan dasar/menengah."
+        )
+    elif has_k12 and has_pt:
+        constraints.append(
+            "Topik menyentuh dua jenjang (dasar/menengah dan tinggi). Jelaskan masing-masing secara terpisah; "
+            "jangan menggabungkan kerangka hukum keduanya."
+        )
+
+    if any(term in padded for term in (" tipikor", "korupsi", "gratifikasi", "suap", "pengadaan", "lkpp")):
+        constraints.append(
+            "Topik menyentuh korupsi atau pengadaan: prioritaskan anti-korupsi (UU 31/1999 jo UU 20/2001) "
+            "dan pengadaan barang/jasa (Perpres 16/2018 jo Perpres 12/2021), serta instansi yang benar-benar "
+            "disebut dalam sumber. Jangan mengarang nomor UU."
+        )
+
+    if any(term in padded for term in ("outsourcing", "ketenagakerjaan", "buruh", "pekerja", "alih daya")):
+        constraints.append(
+            "Fokus pada hukum ketenagakerjaan dan perlindungan pekerja; jangan menggeser isu ke sektor lain."
+        )
+
+    if any(
+        term in padded
+        for term in (
+            "teknologi informasi",
+            " it ",
+            "it audit",
+            "audit teknis",
+            "forensik digital",
+            "device management",
+            "audit trail",
+            "mdm",
+            "cdm",
+            "endpoint",
+            "firmware",
+            "serial number",
+        )
+    ):
+        constraints.append(
+            "Fokus pada audit teknis, forensik digital, tata kelola perangkat, lisensi perangkat lunak, "
+            "log/audit trail, dan bukti digital; jangan mengubahnya menjadi pembahasan hukum pidana semata."
+        )
+
+    if not constraints:
+        constraints.append(
+            "Pertahankan domain persis sesuai topik awal; jangan menukar sektor, jenjang, atau institusi."
+        )
+
+    return " ".join(constraints)
+
+
+def _verify_output_citations(
+    pasal: PasalClient,
+    text: str,
+    *,
+    console: Console,
+    strict: bool,
+) -> None:
+    contexts = extract_citations_with_context(text)
+    if not contexts:
+        return
+
+    checks = verify_citations(pasal, contexts)
+    failures = [check for check in checks if not check.found]
+    if not failures:
+        return
+
+    descriptions: list[str] = []
+    for check in failures:
+        if check.note:
+            descriptions.append(f"{check.reference} ({check.note})")
+        else:
+            descriptions.append(check.reference)
+    msg = "penyusun: draft contains unverifiable citations: " + "; ".join(descriptions)
+    if strict:
+        console.print(f"[red]{msg}[/red]")
+        raise ValueError(msg)
+    console.print(f"[yellow]{msg}[/yellow]")
 
 
 def draft(
@@ -81,6 +254,8 @@ def draft(
         memo = peneliti.research(pool, pasal, topic, console=console)
         research_block = f"\n\nBASIS RISET:\n{memo}\n"
 
+    domain_constraints = _derive_domain_constraints(topic, research_block, extra_instructions)
+
     user_msg = (
         f"Topik: {topic}\n"
         f"Jenis: {kind}\n"
@@ -89,11 +264,28 @@ def draft(
         + "\nSusun naskah lengkap sesuai pedoman gaya."
     )
 
-    return pool.big.chat(
+    output = pool.big.chat(
         [
-            {"role": "system", "content": SYSTEM_TEMPLATE.format(kind=kind, style=style)},
+            {
+                "role": "system",
+                "content": SYSTEM_TEMPLATE.format(
+                    kind=kind,
+                    style=style,
+                    run_date=pool.settings.run_date,
+                    corpus_watermark=pool.settings.corpus_watermark or "tidak ditentukan",
+                    domain_constraints=domain_constraints,
+                ),
+            },
             {"role": "user", "content": user_msg},
         ],
         temperature=0.5,
         max_tokens=4096,
     )
+
+    _verify_output_citations(
+        pasal,
+        output,
+        console=console,
+        strict=pool.settings.strict_citations,
+    )
+    return output
