@@ -8,9 +8,27 @@
 
 ---
 
+## Erratum — 2026-05-01
+
+The original draft of this whitepaper (and the test fixtures + `_CASE_FACTS` block it documents) treated Ibrahim Arief as already convicted, citing "vonis 16 April 2026 — 15 tahun penjara, denda Rp 1 miliar, uang pengganti Rp 16,92 miliar". **That is wrong.** On 16 April 2026 the Jaksa Penuntut Umum read their *tuntutan* (sentencing demand); the actual *vonis* hearing was scheduled for 12 May 2026 and at the time of writing has not yet been delivered. As of 2026-05-01, Ibrahim Arief is a **terdakwa** in an ongoing trial and is entitled to *praduga tak bersalah*.
+
+The error originated in a misreading of WebSearch result summaries that conflated "tuntutan 15 tahun" with "vonis 15 tahun". The wrong fact then propagated into:
+- `_CASE_FACTS` in `src/legawa/agents/penyusun.py` (now corrected — see commit log)
+- `tests/fixtures/surat-chromebook-sekolah.txt` (corrected to use "tuntutan")
+- Every memo this test run produced (those output files are historical artefacts; future runs will use the corrected facts)
+- Sections 1, 2.1, 5.3 of this whitepaper (corrected below)
+
+**Lesson:** in Indonesian legal procedure, distinguish carefully —
+- **tuntutan**: prosecution's sentencing demand, read during trial
+- **vonis**: the court's verdict
+- **inkracht / berkekuatan hukum tetap**: the verdict has become legally binding (after appeals)
+The verifier doesn't catch this distinction because it operates on regulation citations, not case-status claims. Case-fact accuracy remains a manual responsibility.
+
+---
+
 ## 1. Executive Summary
 
-This is the second live validation of legawa, designed to stress the system on a domain where the topic is *adjacent to* — rather than *contained in* — the regulatory corpus. The first whitepaper validated the system on a regulatory issue (outsourcing post-Cipta Kerja) where pasal.id holds the canonical primary instruments. This run targets a corruption case (Kasus Ibam, sentenced 16 April 2026 by the Pengadilan Tipikor over Chromebook/CDM procurement at Kemendikbudristek) where pasal.id does not index the case itself; the agent must construct understanding from procurement law (Perpres 16/2018, Perpres 12/2021) and anti-corruption law (UU 31/1999 jo UU 20/2001).
+This is the second live validation of legawa, designed to stress the system on a domain where the topic is *adjacent to* — rather than *contained in* — the regulatory corpus. The first whitepaper validated the system on a regulatory issue (outsourcing post-Cipta Kerja) where pasal.id holds the canonical primary instruments. This run targets a corruption case (Kasus Ibam — Ibrahim Arief, terdakwa di Pengadilan Tipikor atas dugaan korupsi pengadaan Chromebook/CDM di Kemendikbudristek; tuntutan dibacakan 16 April 2026, vonis dijadwalkan 12 Mei 2026) where pasal.id does not index the case itself; the agent must construct understanding from procurement law (Perpres 16/2018, Perpres 12/2021) and anti-corruption law (UU 31/1999 jo UU 20/2001).
 
 **The first attempt exposed five failure modes** — domain drift (memo reframed K-12 procurement as Perguruan Tinggi governance), date hallucination, content-blind citation verification, missed canonical Tipikor laws, and query-expansion noise. **Ten hardening patches were applied** across `config.py`, `tools/citations.py`, `tools/cache.py`, and `agents/penyusun.py` (and the analogous verification path in `agents/analis_ruu.py` and `agents/surat.py`). **The post-fix re-run produces a memo that passes strict citation verification** with correct K-12 framing, accurate case facts, and proper canonical citations.
 
@@ -24,7 +42,7 @@ The first whitepaper tested a *regulatory* topic. This run is designed to be har
 
 - **Subject is a person, not a regulation** — pasal.id indexes regulations; the case itself is not in the corpus. The agent must triangulate.
 - **Adjacent legal domains** — anti-corruption + public procurement + education-sector accountability. Three separate legal frames must be composed.
-- **Recency** — the case was sentenced 14 days before the run. Some derivative commentary is not yet indexed.
+- **Recency** — the prosecution's *tuntutan* was read 14 days before the run; the *vonis* was still pending at run time. Derivative commentary is sparse and not yet indexed.
 - **Sector confusability** — "education" maps to two distinct corpora in pasal.id: pendidikan tinggi (UU 12/2012) and pendidikan dasar/menengah (UU 20/2003 Sisdiknas). The model has a stronger prior on "pendidikan tinggi scandal" because that is the pattern most often surfaced in Indonesian legal news.
 
 The first run deliberately chose a topic where pasal.id has the answer. This run deliberately chose a topic where it does not.
@@ -185,11 +203,13 @@ D4 fix confirmed: UU 31/1999 jo UU 20/2001 are now retrieved (via canonical FRBR
 legawa draft memo_kebijakan "respons legislatif atas vonis Kasus Ibam dan permintaan akuntabilitas Program Digitalisasi Sekolah" -o output/memo-chromebook.md
 ```
 
-Selected excerpts demonstrating the fixes:
+(Note: the topic phrasing — "vonis Kasus Ibam" — is itself the erratum-flagged factual error described at the top. Future runs should phrase this as "respons legislatif atas tuntutan dalam Kasus Ibam" or simply "Kasus Ibam dan akuntabilitas Program Digitalisasi Sekolah".)
+
+Selected excerpts demonstrating the fixes (excerpts as produced by the model — they reflect the wrong "vonis" framing because `_CASE_FACTS` injected wrong status; the corrected `_CASE_FACTS` will produce "tuntutan" / "terdakwa" language instead):
 
 > **Tanggal:** 30 April 2026 *(was: "24 Mei 2024" pre-fix — D2 fixed)*
 
-> Vonis 15 tahun penjara terhadap **Ibrahim Arief (Ibam)** dalam perkara korupsi pengadaan Chromebook di Kemendikbudristek mengungkap celah serius dalam tata kelola aset digital **pendidikan dasar/menengah**. *(was: "lemahnya mekanisme pertanggungjawaban pimpinan perguruan tinggi" pre-fix — D3 fixed)*
+> Vonis 15 tahun penjara terhadap **Ibrahim Arief (Ibam)** dalam perkara korupsi pengadaan Chromebook di Kemendikbudristek mengungkap celah serius dalam tata kelola aset digital **pendidikan dasar/menengah**. *(was: "lemahnya mekanisme pertanggungjawaban pimpinan perguruan tinggi" pre-fix — D3 fixed; the "Vonis 15 tahun" claim is itself wrong per Erratum — should read "tuntutan jaksa 15 tahun".)*
 
 > Kerangka hukum saat ini, yaitu **UU No. 31 Tahun 1999 jo UU No. 20 Tahun 2001 tentang Pemberantasan Tindak Pidana Korupsi** dan **Perpres No. 16 Tahun 2018 jo Perpres No. 12 Tahun 2021 tentang Pengadaan Barang/Jasa Pemerintah**, terbukti belum cukup mencegah manipulasi teknis pengadaan. *(D4: Tipikor laws now correctly cited)*
 

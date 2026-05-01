@@ -74,16 +74,23 @@ _CASE_FACTS: tuple[tuple[tuple[str, ...], str], ...] = (
         ("kasus ibam", "ibrahim arief"),
         (
             "FAKTA KASUS IBAM (gunakan ini sebagai sumber, jangan diabaikan): "
-            "Kasus Ibam adalah perkara korupsi pengadaan Chromebook dan Chrome Device "
-            "Management (CDM) di Kementerian Pendidikan, Kebudayaan, Riset, dan Teknologi "
-            "(Kemendikbudristek). Pelaku: Ibrahim Arief, alias Ibam — eks-konsultan Tim "
-            "Teknologi Kemendikbudristek di bawah Mendikbudristek Nadiem Makarim. Vonis: "
-            "Pengadilan Tipikor 16 April 2026 — 15 tahun penjara, denda Rp 1 miliar, uang "
-            "pengganti Rp 16,92 miliar. Distribusi Chromebook ditujukan untuk sekolah dasar "
-            "dan menengah dalam Program Digitalisasi Sekolah; INI BUKAN kasus tata kelola "
-            "Perguruan Tinggi/PTN/PTS, bukan kasus rekrutmen dosen, bukan kasus akademik. "
-            "Kerangka hukum yang dipakai: UU 31/1999 jo UU 20/2001 (Tipikor) dan "
-            "Perpres 16/2018 jo Perpres 12/2021 (Pengadaan Barang/Jasa)."
+            "Kasus Ibam adalah perkara dugaan korupsi pengadaan Chromebook dan Chrome "
+            "Device Management (CDM) di Kementerian Pendidikan, Kebudayaan, Riset, dan "
+            "Teknologi (Kemendikbudristek). Terdakwa: Ibrahim Arief, alias Ibam — eks-"
+            "konsultan Tim Teknologi Kemendikbudristek di bawah Mendikbudristek Nadiem "
+            "Makarim. STATUS HUKUM PER 1 MEI 2026: Ibam adalah TERDAKWA dalam proses "
+            "persidangan di Pengadilan Tipikor; vonis BELUM dibacakan. Pada 16 April "
+            "2026, Jaksa Penuntut Umum membacakan TUNTUTAN (bukan vonis) berupa 15 "
+            "tahun penjara, denda Rp 1 miliar, dan uang pengganti Rp 16,92 miliar. "
+            "Sidang vonis dijadwalkan 12 Mei 2026 (sempat ditunda). Karena itu, dalam "
+            "naskah, GUNAKAN istilah 'terdakwa', 'tuntutan jaksa', 'sedang menjalani "
+            "persidangan', 'asas praduga tak bersalah' — JANGAN gunakan 'terpidana', "
+            "'divonis', 'dihukum', 'sudah dijatuhi pidana', atau menyebut angka 15 "
+            "tahun sebagai vonis. Distribusi Chromebook ditujukan untuk sekolah dasar "
+            "dan menengah dalam Program Digitalisasi Sekolah; INI BUKAN kasus tata "
+            "kelola Perguruan Tinggi/PTN/PTS, bukan kasus rekrutmen dosen, bukan kasus "
+            "akademik. Kerangka hukum yang didakwakan: UU 31/1999 jo UU 20/2001 "
+            "(Tipikor) dan Perpres 16/2018 jo Perpres 12/2021 (Pengadaan Barang/Jasa)."
         ),
     ),
 )
