@@ -15,6 +15,7 @@ from ..llm import LLMPool
 from ..tools.citations import extract_citations_with_context, verify_citations
 from ..tools.pasal import PasalClient
 from . import peneliti
+from .domain import classify_domain, render_constraints
 
 
 NaskahKind = Literal["pidato", "naskah_akademik", "memo_kebijakan", "siaran_pers"]
@@ -130,17 +131,34 @@ _PT_TRIGGERS = (
 )
 
 
-def _derive_domain_constraints(topic: str, research_block: str = "", extra_instructions: str | None = None) -> str:
+def _case_fact_overrides(topic: str, research_block: str = "", extra_instructions: str | None = None) -> list[str]:
+    """Authoritative case-fact blocks for known cases — always applied as a fast-path.
+
+    The classifier may also detect ``kasus_terkait`` and emit relevant guidance,
+    but these hand-curated facts are kept as a guaranteed prepend because they
+    are higher-fidelity than anything the SMALL model would generate on its own.
+    """
+    blob = " ".join(part for part in [topic, research_block, extra_instructions or ""] if part).lower()
+    padded = f" {blob} "
+    facts: list[str] = []
+    for keywords, fact_block in _CASE_FACTS:
+        if any(keyword in padded for keyword in keywords):
+            facts.append(fact_block)
+    return facts
+
+
+def _keyword_domain_constraints(
+    topic: str, research_block: str = "", extra_instructions: str | None = None
+) -> str:
+    """Fallback domain anchor when the SMALL classifier fails or is unavailable.
+
+    Pattern-matches on a curated trigger list. Less flexible than the classifier
+    but deterministic, fast, and offline-friendly.
+    """
     blob = " ".join(part for part in [topic, research_block, extra_instructions or ""] if part).lower()
     # Pad with spaces so " sd " and " ptn " patterns match at edges.
     padded = f" {blob} "
     constraints: list[str] = []
-
-    # If the topic mentions a known case, prepend authoritative facts. These
-    # override the model's prior — the most consequential domain-drift fix.
-    for keywords, facts in _CASE_FACTS:
-        if any(keyword in padded for keyword in keywords):
-            constraints.append(facts)
 
     has_k12 = any(term in padded for term in _K12_TRIGGERS)
     has_pt = any(term in padded for term in _PT_TRIGGERS)
@@ -204,6 +222,46 @@ def _derive_domain_constraints(topic: str, research_block: str = "", extra_instr
     return " ".join(constraints)
 
 
+def _derive_domain_constraints(
+    pool: LLMPool,
+    topic: str,
+    research_block: str = "",
+    extra_instructions: str | None = None,
+    *,
+    console: Console | None = None,
+) -> str:
+    """Build the domain constraint string for the BIG model's system prompt.
+
+    Composition:
+      1. Authoritative case-fact overrides (keyword fast-path) — these are
+         hand-curated and always applied when matching.
+      2. SMALL-model domain classifier — produces ``DomainAnalysis`` with
+         sektor/jenjang/instansi/anti_drift fields.
+      3. Keyword-based fallback — used only when the classifier raises
+         (parse error, transport error, or model output that doesn't validate).
+    """
+    parts = list(_case_fact_overrides(topic, research_block, extra_instructions))
+
+    try:
+        analysis = classify_domain(
+            pool,
+            topic,
+            research_block=research_block,
+            extra_instructions=extra_instructions,
+            console=console,
+        )
+        parts.append(render_constraints(analysis))
+    except Exception as e:  # noqa: BLE001 — classifier may fail in many ways; we always need a result
+        if console is not None:
+            console.print(
+                f"[yellow]penyusun: domain classifier failed ({type(e).__name__}: {e}); "
+                f"falling back to keyword anchor[/yellow]"
+            )
+        parts.append(_keyword_domain_constraints(topic, research_block, extra_instructions))
+
+    return " ".join(p for p in parts if p)
+
+
 def _verify_output_citations(
     pasal: PasalClient,
     text: str,
@@ -254,7 +312,9 @@ def draft(
         memo = peneliti.research(pool, pasal, topic, console=console)
         research_block = f"\n\nBASIS RISET:\n{memo}\n"
 
-    domain_constraints = _derive_domain_constraints(topic, research_block, extra_instructions)
+    domain_constraints = _derive_domain_constraints(
+        pool, topic, research_block, extra_instructions, console=console
+    )
 
     user_msg = (
         f"Topik: {topic}\n"
