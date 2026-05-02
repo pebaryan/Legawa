@@ -437,12 +437,111 @@ def _infer_query(ref: str) -> tuple[str, str | None]:
     return ref, None
 
 
+_REPEALED_RELATIONSHIP_TYPES = frozenset({"dicabut oleh", "repealed by"})
+_AMENDED_RELATIONSHIP_TYPES = frozenset({"diubah oleh", "amended by"})
+
+
+def _year_from_frbr(frbr_uri: str | None) -> int | None:
+    """Extract the year segment from an FRBR URI like ``akn/id/act/uu/2014/36``."""
+    if not frbr_uri:
+        return None
+    parts = frbr_uri.lstrip("/").split("/")
+    # Standard shape: akn/id/act/<kind>/<year>/<number>
+    if len(parts) >= 6 and parts[4].isdigit():
+        return int(parts[4])
+    return None
+
+
+def _related_year(rel: dict[str, Any]) -> int | None:
+    related = rel.get("related_work") or rel.get("related") or {}
+    if not isinstance(related, dict):
+        return None
+    year = related.get("year")
+    if isinstance(year, int):
+        return year
+    if isinstance(year, str) and year.isdigit():
+        return int(year)
+    return _year_from_frbr(related.get("frbr_uri") or related.get("uri"))
+
+
+def _amendment_status(pasal_client: Any, frbr_uri: str) -> tuple[dict[str, Any] | None, list[dict[str, Any]]]:
+    """Return ``(repealed_by_relationship_or_None, list_of_amended_by_relationships)``.
+
+    Probes pasal.id's ``get_law`` endpoint for the regulation's relationships
+    field and classifies them. pasal.id's ``status`` field is unreliable
+    (omnibus replacements like UU 17/2023 leave their predecessors marked
+    ``berlaku``); the relationships graph is more reliable, *but* pasal.id
+    mirrors relationships in both directions — UU 13/2003's "Dicabut oleh"
+    list also contains UU 25/1997 (the older law it actually revoked).
+
+    To disambiguate: a relationship of type "Dicabut oleh" / "Diubah oleh"
+    is only treated as authoritative if the related work has a *later* year
+    than the cited regulation. Same-year and earlier-year mirrors are
+    discarded.
+
+    Returns ``(None, [])`` on any error — the verifier should degrade
+    gracefully when this side-probe fails.
+    """
+    if not frbr_uri:
+        return None, []
+    normalised = frbr_uri.lstrip("/")
+    try:
+        full = pasal_client.get_law(normalised)
+    except Exception:
+        return None, []
+
+    relationships = full.get("relationships") or full.get("work", {}).get("relationships") or []
+    if not isinstance(relationships, list):
+        return None, []
+
+    self_year = _year_from_frbr(normalised)
+
+    repealed: dict[str, Any] | None = None
+    amended: list[dict[str, Any]] = []
+    for rel in relationships:
+        if not isinstance(rel, dict):
+            continue
+        rel_type = (rel.get("type") or "").strip().lower()
+        rel_type_en = (rel.get("type_en") or "").strip().lower()
+        is_repealed = rel_type in _REPEALED_RELATIONSHIP_TYPES or rel_type_en in _REPEALED_RELATIONSHIP_TYPES
+        is_amended = rel_type in _AMENDED_RELATIONSHIP_TYPES or rel_type_en in _AMENDED_RELATIONSHIP_TYPES
+        if not (is_repealed or is_amended):
+            continue
+
+        # Pasal.id mirrors relationships in both directions. Only treat the
+        # relationship as authoritative when the related work is newer than
+        # the cited regulation — i.e. a real successor, not a mirrored
+        # predecessor entry.
+        rel_year = _related_year(rel)
+        if self_year is not None and rel_year is not None and rel_year <= self_year:
+            continue
+
+        if is_repealed:
+            if repealed is None:
+                repealed = rel
+        elif is_amended:
+            amended.append(rel)
+    return repealed, amended
+
+
+def _format_relationship_target(rel: dict[str, Any]) -> str:
+    related = rel.get("related_work") or rel.get("related") or {}
+    if not isinstance(related, dict):
+        return "regulasi pengganti tidak dikenali"
+    title = related.get("title") or related.get("name")
+    frbr = related.get("frbr_uri") or related.get("uri")
+    if title and frbr:
+        return f"{title} ({frbr.lstrip('/')})"
+    return title or frbr or "regulasi pengganti tidak dikenali"
+
+
 def verify_citation(
     pasal_client: Any,
     reference: str,
     *,
     claimed_topic: str | None = None,
     limit: int = 5,
+    check_amendments: bool = True,
 ) -> CitationCheck:
     """Verify a single citation against pasal.id search results.
 
@@ -451,6 +550,15 @@ def verify_citation(
     the claimed topic and the matched regulation's actual title. This catches
     the failure mode where a (kind, number, year) tuple resolves to a real
     regulation that is *not* about what the agent claimed.
+
+    If ``check_amendments`` is True (default), additionally probes the matched
+    regulation's relationships graph and:
+      - rejects (``found=False``) if the regulation has been repealed
+        (``Dicabut oleh`` / ``Repealed by``)
+      - keeps ``found=True`` but adds an advisory note when the regulation
+        has been amended (``Diubah oleh`` / ``Amended by``)
+    Disable by passing ``check_amendments=False`` for cheap existence-only
+    checks.
     """
     expected_refs = extract_citations(reference) or [reference.strip()]
     primary = expected_refs[0]
@@ -516,6 +624,29 @@ def verify_citation(
             )
             continue
 
+        success_note: str | None = None
+        if check_amendments and frbr_uri:
+            repealed_rel, amended_rels = _amendment_status(pasal_client, frbr_uri)
+            # NOTE: pasal.id's relationships graph is unreliable in practice —
+            # it sometimes mis-classifies cross-references as "Dicabut oleh".
+            # We surface the finding as an advisory note for staff review but
+            # never reject the citation outright on this signal alone. False
+            # positives on canonical statutes (e.g. UU 31/1999) would be worse
+            # than missing the occasional real repeal.
+            advisories: list[str] = []
+            if repealed_rel is not None:
+                successor = _format_relationship_target(repealed_rel)
+                advisories.append(
+                    f"pasal.id menandai regulasi ini 'Dicabut oleh' {successor} — verifikasi manual disarankan"
+                )
+            if amended_rels:
+                successors = "; ".join(_format_relationship_target(r) for r in amended_rels[:3])
+                advisories.append(
+                    f"regulasi telah diubah; periksa apakah pasal yang dikutip masih berlaku setelah perubahan: {successors}"
+                )
+            if advisories:
+                success_note = " | ".join(advisories)
+
         return CitationCheck(
             reference=expected_refs[0],
             found=True,
@@ -524,6 +655,7 @@ def verify_citation(
             frbr_uri=frbr_uri,
             status=status,
             evidence=", ".join(canonical_hits[:3]) or None,
+            note=success_note,
             claimed_topic=claimed_topic,
         )
 

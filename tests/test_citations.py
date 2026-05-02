@@ -19,13 +19,21 @@ from legawa.tools.citations import (
 
 
 class FakePasalClient:
-    def __init__(self, responses: dict[str, dict]):
+    def __init__(self, responses: dict[str, dict], laws: dict[str, dict] | None = None):
         self.responses = responses
+        self.laws = laws or {}
         self.calls: list[tuple[dict, ...]] = []
+        self.get_law_calls: list[str] = []
 
     def search(self, **kwargs):
         self.calls.append((kwargs,))
         return self.responses.get(kwargs["q"], {"results": []})
+
+    def get_law(self, frbr_uri: str):
+        self.get_law_calls.append(frbr_uri)
+        if frbr_uri not in self.laws:
+            raise KeyError(f"no fixture for {frbr_uri}")
+        return self.laws[frbr_uri]
 
 
 class CitationTests(unittest.TestCase):
@@ -122,6 +130,180 @@ class CitationTests(unittest.TestCase):
         claim = "Sistem Pendidikan Nasional"
         title = "Undang-Undang Nomor 20 Tahun 2003 tentang Undang-Undang Nomor 20 Tahun 2003"
         self.assertTrue(_topics_overlap(claim, title))
+
+    def test_verify_citation_advises_on_repealed_regulation(self) -> None:
+        # When pasal.id reports a 'Dicabut oleh' relationship to a NEWER
+        # regulation, surface as an advisory note. We do NOT reject the
+        # citation outright because pasal.id's relationships graph
+        # mis-classifies some cross-references (false positives would block
+        # legitimate canonical statutes like UU 31/1999).
+        fake = FakePasalClient(
+            responses={
+                "UU 22/1999": {
+                    "results": [
+                        {
+                            "title": "Undang-Undang Nomor 22 Tahun 1999 tentang Pemerintahan Daerah",
+                            "frbr_uri": "akn/id/act/uu/1999/22",
+                            "status": "berlaku",  # pasal.id status field is unreliable
+                        }
+                    ]
+                }
+            },
+            laws={
+                "akn/id/act/uu/1999/22": {
+                    "title": "Undang-Undang Nomor 22 Tahun 1999 tentang Pemerintahan Daerah",
+                    "frbr_uri": "akn/id/act/uu/1999/22",
+                    "status": "berlaku",
+                    "relationships": [
+                        {
+                            "type": "Dicabut oleh",
+                            "type_en": "Repealed by",
+                            "related_work": {
+                                "title": "Undang-Undang Nomor 32 Tahun 2004 tentang Pemerintahan Daerah",
+                                "frbr_uri": "/akn/id/act/uu/2004/32",
+                            },
+                        }
+                    ],
+                }
+            },
+        )
+
+        check = verify_citation(fake, "UU 22/1999", claimed_topic="Pemerintahan Daerah")
+        self.assertTrue(check.found)
+        self.assertIn("Dicabut oleh", check.note or "")
+        self.assertIn("Undang-Undang Nomor 32 Tahun 2004", check.note or "")
+        self.assertIn("akn/id/act/uu/2004/32", check.note or "")
+        self.assertIn("verifikasi manual", check.note or "")
+
+    def test_verify_citation_ignores_mirrored_predecessor_relationship(self) -> None:
+        # pasal.id mirrors relationships in both directions. UU 13/2003
+        # genuinely revokes UU 25/1997, but pasal.id also lists UU 25/1997
+        # under UU 13/2003's "Dicabut oleh". The disambiguator must skip
+        # mirrored entries where the related work is OLDER than the cited
+        # regulation.
+        fake = FakePasalClient(
+            responses={
+                "UU 13/2003": {
+                    "results": [
+                        {
+                            "title": "Undang-Undang Nomor 13 Tahun 2003 tentang Ketenagakerjaan",
+                            "frbr_uri": "akn/id/act/uu/2003/13",
+                            "status": "berlaku",
+                        }
+                    ]
+                }
+            },
+            laws={
+                "akn/id/act/uu/2003/13": {
+                    "title": "Undang-Undang Nomor 13 Tahun 2003 tentang Ketenagakerjaan",
+                    "frbr_uri": "akn/id/act/uu/2003/13",
+                    "status": "berlaku",
+                    "relationships": [
+                        # The mirrored predecessor — should be ignored.
+                        {
+                            "type": "Dicabut oleh",
+                            "type_en": "Repealed by",
+                            "related_work": {
+                                "title": "UU 25/1997",
+                                "frbr_uri": "/akn/id/act/uu/1997/25",
+                            },
+                        },
+                    ],
+                }
+            },
+        )
+
+        check = verify_citation(fake, "UU 13/2003", claimed_topic="Ketenagakerjaan")
+        self.assertTrue(check.found)
+        # No advisory should fire — the mirrored predecessor is filtered.
+        self.assertIsNone(check.note)
+
+    def test_verify_citation_warns_on_amended_regulation(self) -> None:
+        # Real case: UU 13/2003 (Ketenagakerjaan) is 'Diubah oleh' UU 6/2023.
+        # Citation should still pass (regulation is operative in modified form),
+        # but with an advisory note.
+        fake = FakePasalClient(
+            responses={
+                "UU 13/2003": {
+                    "results": [
+                        {
+                            "title": "Undang-Undang Nomor 13 Tahun 2003 tentang Ketenagakerjaan",
+                            "frbr_uri": "akn/id/act/uu/2003/13",
+                            "status": "berlaku",
+                        }
+                    ]
+                }
+            },
+            laws={
+                "akn/id/act/uu/2003/13": {
+                    "title": "Undang-Undang Nomor 13 Tahun 2003 tentang Ketenagakerjaan",
+                    "frbr_uri": "akn/id/act/uu/2003/13",
+                    "status": "berlaku",
+                    "relationships": [
+                        {
+                            "type": "Diubah oleh",
+                            "type_en": "Amended by",
+                            "related_work": {
+                                "title": "UU Nomor 6 Tahun 2023 tentang Cipta Kerja",
+                                "frbr_uri": "/akn/id/act/uu/2023/6",
+                            },
+                        }
+                    ],
+                }
+            },
+        )
+
+        check = verify_citation(fake, "UU 13/2003", claimed_topic="Ketenagakerjaan")
+        self.assertTrue(check.found)
+        self.assertIn("diubah", (check.note or "").lower())
+        self.assertIn("Cipta Kerja", check.note or "")
+
+    def test_verify_citation_skips_amendment_check_when_disabled(self) -> None:
+        # When check_amendments=False, no get_law call is made — useful for
+        # cheap existence-only verification paths.
+        fake = FakePasalClient(
+            responses={
+                "UU 13/2003": {
+                    "results": [
+                        {
+                            "title": "Undang-Undang Nomor 13 Tahun 2003 tentang Ketenagakerjaan",
+                            "frbr_uri": "akn/id/act/uu/2003/13",
+                            "status": "berlaku",
+                        }
+                    ]
+                }
+            },
+            laws={},
+        )
+
+        check = verify_citation(fake, "UU 13/2003", check_amendments=False)
+        self.assertTrue(check.found)
+        self.assertIsNone(check.note)
+        self.assertEqual(fake.get_law_calls, [])
+
+    def test_verify_citation_amendment_check_degrades_on_get_law_failure(self) -> None:
+        # If pasal.id /laws/{uri} fails (network error, missing law, etc.),
+        # the amendment check must not block legitimate citations.
+        fake = FakePasalClient(
+            responses={
+                "UU 13/2003": {
+                    "results": [
+                        {
+                            "title": "Undang-Undang Nomor 13 Tahun 2003 tentang Ketenagakerjaan",
+                            "frbr_uri": "akn/id/act/uu/2003/13",
+                            "status": "berlaku",
+                        }
+                    ]
+                }
+            },
+            laws={},  # get_law will raise KeyError
+        )
+
+        check = verify_citation(fake, "UU 13/2003", claimed_topic="Ketenagakerjaan")
+        self.assertTrue(check.found)
+        self.assertIsNone(check.note)
+        # get_law was attempted but failed silently
+        self.assertEqual(fake.get_law_calls, ["akn/id/act/uu/2003/13"])
 
     def test_verify_citations_formats_mixed_results(self) -> None:
         fake = FakePasalClient(
