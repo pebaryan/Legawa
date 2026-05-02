@@ -45,6 +45,32 @@ STYLE_GUIDES: dict[str, str] = {
 }
 
 
+# Authoritative reference for DPR RI commission portfolios. Models often
+# misclassify which Komisi a topic belongs to (e.g. citing Komisi IV for a
+# transport issue when transport is actually Komisi V). Injected into agent
+# prompts so the model has a canonical mapping to consult instead of relying
+# on training-time priors that may be from older legislative periods.
+KOMISI_DPR_2024_2029 = """\
+KOMISI DPR RI (Periode 2024–2029) — gunakan untuk menentukan Komisi yang relevan:
+- Komisi I: Pertahanan, Luar Negeri, Komunikasi & Informatika, Intelijen
+- Komisi II: Pemerintahan Dalam Negeri, Otonomi Daerah, ASN, Pemilu, Agraria
+- Komisi III: Hukum, Penegakan Hukum, Yudikatif, Pemberantasan Korupsi (KPK)
+- Komisi IV: Pertanian, Kehutanan, Kelautan, Perikanan, Ketahanan Pangan
+- Komisi V: Infrastruktur, PUPR, Perhubungan, Desa & Daerah Tertinggal, BMKG, Basarnas
+- Komisi VI: Perdagangan, BUMN, Perlindungan Konsumen, Standardisasi
+- Komisi VII: Perindustrian, Pariwisata, Ekonomi Kreatif, UMKM
+- Komisi VIII: Agama, Sosial, Pemberdayaan Perempuan & Anak, Kebencanaan
+- Komisi IX: Kesehatan, Ketenagakerjaan, Kependudukan, Perlindungan Pekerja Migran, BPJS, BPOM
+- Komisi X: Pendidikan, Kebudayaan, Riset & Teknologi (Pendidikan Tinggi), Pemuda, Olahraga
+- Komisi XI: Keuangan, Perbankan, Investasi, Fiskal
+- Komisi XII: Energi, SDM, Pertambangan, Lingkungan Hidup
+- Komisi XIII: HAM, Imigrasi, Ideologi Nasional
+
+Bila topik menyentuh beberapa bidang, sebutkan Komisi utama dan tembusan ke
+Komisi terkait. Jangan menebak nomor Komisi — pakai daftar di atas.
+"""
+
+
 SYSTEM_TEMPLATE = """\
 Anda adalah Penyusun Naskah profesional yang membantu anggota legislatif Indonesia.
 
@@ -53,6 +79,8 @@ Pedoman gaya: {style}
 Tanggal penyusunan: {run_date}
 Status korpus pasal.id: {corpus_watermark}
 Konteks domain: {domain_constraints}
+
+{komisi_reference}
 
 Aturan umum:
 - Bahasa Indonesia formal, presisi, dan menghormati kaidah hukum.
@@ -341,6 +369,7 @@ def draft(
                     run_date=pool.settings.run_date,
                     corpus_watermark=pool.settings.corpus_watermark or "tidak ditentukan",
                     domain_constraints=domain_constraints,
+                    komisi_reference=KOMISI_DPR_2024_2029,
                 ),
             },
             {"role": "user", "content": user_msg},

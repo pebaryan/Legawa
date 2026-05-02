@@ -76,6 +76,34 @@ class PenyusunTests(unittest.TestCase):
         self.assertIn("Status korpus pasal.id: 2026-04-30", system_prompt)
         self.assertIn("pendidikan dasar/menengah", system_prompt)
 
+    def test_draft_includes_komisi_dpr_reference(self) -> None:
+        # Models persistently misclassify which Komisi a topic belongs to
+        # (e.g. addressing transport memos to Komisi IV when transport is V).
+        # The 2024-2029 Komisi reference table must be present in the
+        # rendered system prompt so the model has authoritative ground truth.
+        pool = FakePool(
+            make_settings(),
+            small_response='["pengadaan sekolah dasar"]',
+            big_response="Memo singkat.",
+        )
+        pasal = FakePasalClient()
+
+        draft(
+            pool, pasal,
+            kind="memo_kebijakan",
+            topic="transportasi perlintasan sebidang",
+            with_research=False,
+        )
+
+        system_prompt = pool.big.calls[0][0][0]["content"]
+        self.assertIn("KOMISI DPR RI", system_prompt)
+        self.assertIn("Komisi V", system_prompt)
+        self.assertIn("Perhubungan", system_prompt)
+        self.assertIn("Komisi IX", system_prompt)
+        self.assertIn("Kesehatan", system_prompt)
+        self.assertIn("Komisi X", system_prompt)
+        self.assertIn("Pendidikan", system_prompt)
+
     def test_draft_blocks_unverified_citation(self) -> None:
         pool = FakePool(
             make_settings(),

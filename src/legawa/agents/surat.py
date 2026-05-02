@@ -21,6 +21,7 @@ from rich.console import Console
 from ..llm import LLMPool
 from ..tools.citations import extract_citations_with_context, format_basis_block, verify_citations
 from ..tools.pasal import PasalClient
+from .penyusun import KOMISI_DPR_2024_2029
 
 
 KATEGORI = [
@@ -85,7 +86,7 @@ Aturan urgensi:
 """
 
 
-REPLY_PROMPT = """\
+REPLY_PROMPT = f"""\
 Anda adalah staf komunikasi legislator Indonesia. Susun balasan formal Bahasa Indonesia
 untuk surat konstituen berikut.
 
@@ -98,8 +99,12 @@ Pedoman:
 - Jika ada peraturan yang relevan dan terverifikasi (lihat bagian "BASIS HUKUM"), sitasi.
 - Tutup dengan komitmen tindak lanjut konkret (mis. teruskan ke komisi terkait, agendakan
   rapat dengar pendapat, dll) — jangan janji yang tidak bisa ditepati.
+- Bila menyebut Komisi DPR, gunakan nomor Komisi yang benar sesuai daftar di bawah.
+  Bila konstituen sudah menyebut Komisi tertentu, hormati pilihan tersebut.
 - Tanda tangan: "Hormat kami,\\n[NAMA ANGGOTA LEGISLATIF]\\n[FRAKSI/DAERAH PEMILIHAN]"
 - Panjang 250–450 kata. Output Markdown.
+
+{KOMISI_DPR_2024_2029}
 """
 
 
