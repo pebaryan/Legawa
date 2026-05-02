@@ -38,9 +38,13 @@ _REGULATION_RE = re.compile(
         |Perda(?:\s+(?:Provinsi|Kabupaten(?:/Kota)?|Kota)(?:\s+[A-Za-z][\w&/\-]*){0,6})?
         |Peraturan\s+Daerah(?:\s+(?:Provinsi|Kabupaten(?:/Kota)?|Kota)(?:\s+[A-Za-z][\w&/\-]*){0,6})?
         |Permen(?:\s*[A-Za-z]+)?
-        |Peraturan\s+Menteri(?:\s+[A-Za-z][\w\s&/\-]*)?
+        |Peraturan\s+Menteri(?:\s+[A-Za-z][\w&/\-]*){0,4}
     )
-    \s*(?:No\.?|Nomor)?\s*
+    # Tolerate closing parens, brackets, and markdown bold/italic between the
+    # label and the number — e.g. "(Permenhub) No. PM 94" or "**Permenhub** 94".
+    [\s)\]\*\_]*
+    (?:No\.?|Nomor)?\s*
+    (?:(?:PM|KP|KEP|PER)\.?\s*)?
     (?P<number>\d{1,4})
     \s*(?:/|Tahun)\s*
     (?P<year>\d{4})

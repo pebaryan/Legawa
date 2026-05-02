@@ -107,6 +107,23 @@ class PenelitiTests(unittest.TestCase):
         )
         self.assertIn("akn/id/act/perpres/2025/19", uris)
 
+    def test_canonical_probe_uris_transportasi(self) -> None:
+        uris = _canonical_probe_uris(
+            "kecelakaan kereta api dan taksi listrik di perlintasan sebidang Bekasi",
+            ["lalu lintas dan angkutan jalan", "kereta api perlintasan sebidang", "kendaraan listrik komersial"],
+        )
+        self.assertIn("akn/id/act/uu/2009/22", uris)  # UU LLAJ
+        self.assertIn("akn/id/act/uu/2007/23", uris)  # UU Perkeretaapian
+        self.assertIn("akn/id/act/perpres/2019/55", uris)  # Perpres EV
+
+    def test_canonical_probe_uris_jasa_raharja(self) -> None:
+        uris = _canonical_probe_uris(
+            "santunan korban kecelakaan lalu lintas dan tanggung jawab Jasa Raharja",
+            ["asuransi penumpang"],
+        )
+        self.assertIn("akn/id/act/uu/1964/33", uris)
+        self.assertIn("akn/id/act/uu/1964/34", uris)
+
     def test_canonical_probe_uris_no_match_for_unrelated_topic(self) -> None:
         uris = _canonical_probe_uris(
             "regulasi izin usaha pertambangan emas skala kecil",

@@ -125,6 +125,20 @@ class CitationTests(unittest.TestCase):
         title = "Majelis Permusyawaratan Rakyat, Dewan Perwakilan Rakyat, Dewan Perwakilan Daerah, dan Dewan Perwakilan Rakyat Daerah"
         self.assertTrue(_topics_overlap(claim, title))
 
+    def test_extract_citations_handles_kemenhub_pm_prefix(self) -> None:
+        # Kemenhub uses "PM <n> Tahun YYYY" as its internal numbering. Without
+        # this case the verifier would silently miss every Permenhub citation
+        # in agent output.
+        text = (
+            "Permenhub No. PM 94 Tahun 2018 tentang Perlintasan Sebidang. "
+            "Lihat juga Permenhub PM 36/2011 dan Peraturan Menteri Perhubungan "
+            "Nomor PM 73 Tahun 2018."
+        )
+        cites = extract_citations(text)
+        self.assertIn("Permen 94/2018", cites)
+        self.assertIn("Permen 36/2011", cites)
+        self.assertIn("Permen 73/2018", cites)
+
     def test_topics_overlap_uninformative_title_falls_back(self) -> None:
         # Echoed pasal.id title — no usable signal — accept by existence-only.
         claim = "Sistem Pendidikan Nasional"
