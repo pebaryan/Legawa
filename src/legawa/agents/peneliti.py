@@ -60,14 +60,34 @@ Aturan:
 """
 
 
+# Canonical primary statutes for known sectors. When the topic / queries blob
+# matches any keyword in a row, that FRBR URI is fetched directly via
+# get_law() and merged into Peneliti's synthesis context. Closes the failure
+# mode where pasal.id /search ranking misses a sector's operative statute.
+#
+# Only include statutes that are currently 'berlaku' — superseded laws should
+# never be probed as canonical (they would mislead the BIG model into anchoring
+# on the wrong framework). Verify status before adding new entries.
 _CANONICAL_PROBES: list[tuple[tuple[str, ...], str]] = [
+    # Tipikor (UU Pemberantasan Tindak Pidana Korupsi)
     (("tipikor", "korupsi", "gratifikasi", "suap", "konflik kepentingan"), "akn/id/act/uu/1999/31"),
     (("tipikor", "korupsi", "gratifikasi", "suap", "konflik kepentingan"), "akn/id/act/uu/2001/20"),
+    # Pengadaan barang/jasa pemerintah
     (("pengadaan", "barang jasa", "barang/jasa", "procurement", "chromebook"), "akn/id/act/perpres/2018/16"),
     (("pengadaan", "barang jasa", "barang/jasa", "procurement", "chromebook"), "akn/id/act/perpres/2021/12"),
+    # Ketenagakerjaan + Cipta Kerja
     (("outsourcing", "ketenagakerjaan", "buruh", "pekerja", "tenaga kerja"), "akn/id/act/uu/2003/13"),
     (("outsourcing", "ketenagakerjaan", "buruh", "pekerja", "tenaga kerja"), "akn/id/act/uu/2023/6"),
     (("outsourcing", "ketenagakerjaan", "buruh", "pekerja", "tenaga kerja"), "akn/id/act/pp/2021/35"),
+    # Pendidikan & kesejahteraan dosen
+    (("dosen", "guru", "tunjangan profesi", "kesejahteraan dosen", "permendiktisaintek"), "akn/id/act/uu/2005/14"),  # UU Guru dan Dosen
+    (("dosen", "perguruan tinggi", "ptn", "pts", "rektor"), "akn/id/act/uu/2012/12"),  # UU Pendidikan Tinggi
+    (("tukin", "tunjangan kinerja", "asn"), "akn/id/act/perpres/2025/19"),  # Tukin ASN 2025
+    # Kesehatan & pendidikan kedokteran
+    (("kesehatan", "tenaga kesehatan", "rumah sakit", "dokter", "ppds", "internsip"), "akn/id/act/uu/2023/17"),  # UU Kesehatan (omnibus)
+    (("kesehatan", "tenaga kesehatan", "rumah sakit", "dokter", "ppds"), "akn/id/act/pp/2024/28"),  # PP pelaksanaan UU 17/2023
+    (("dokter", "ppds", "pendidikan kedokteran", "pendidikan dokter spesialis"), "akn/id/act/uu/2013/20"),  # UU Pendidikan Kedokteran
+    (("internsip", "dokter internsip", "dokter gigi internsip"), "akn/id/act/permenkes/2022/7"),  # Permenkes Internsip
 ]
 
 

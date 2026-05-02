@@ -82,6 +82,39 @@ class PenelitiTests(unittest.TestCase):
         self.assertIn("akn/id/act/uu/2001/20", uris)
         self.assertIn("akn/id/act/perpres/2018/16", uris)
 
+    def test_canonical_probe_uris_dosen_welfare(self) -> None:
+        uris = _canonical_probe_uris(
+            "kerangka hukum penghasilan dan tunjangan dosen pasca Permendiktisaintek 52/2025",
+            ["UU Guru dan Dosen", "tunjangan profesi dosen"],
+        )
+        self.assertIn("akn/id/act/uu/2005/14", uris)  # UU Guru dan Dosen
+        self.assertIn("akn/id/act/uu/2012/12", uris)  # UU Pendidikan Tinggi (via 'dosen')
+
+    def test_canonical_probe_uris_kesehatan_ppds(self) -> None:
+        uris = _canonical_probe_uris(
+            "perlindungan PPDS dan dokter internsip pasca UU 17/2023",
+            ["status hukum tenaga kesehatan", "perundungan dokter residen"],
+        )
+        self.assertIn("akn/id/act/uu/2023/17", uris)  # UU Kesehatan
+        self.assertIn("akn/id/act/pp/2024/28", uris)  # PP pelaksanaan
+        self.assertIn("akn/id/act/uu/2013/20", uris)  # UU Pendidikan Kedokteran
+        self.assertIn("akn/id/act/permenkes/2022/7", uris)  # Permenkes Internsip
+
+    def test_canonical_probe_uris_tukin(self) -> None:
+        uris = _canonical_probe_uris(
+            "tunjangan kinerja ASN sektor pendidikan",
+            ["tukin pegawai negeri"],
+        )
+        self.assertIn("akn/id/act/perpres/2025/19", uris)
+
+    def test_canonical_probe_uris_no_match_for_unrelated_topic(self) -> None:
+        uris = _canonical_probe_uris(
+            "regulasi izin usaha pertambangan emas skala kecil",
+            ["pertambangan rakyat"],
+        )
+        # None of the curated probes should fire for an unrelated topic.
+        self.assertEqual(uris, [])
+
     def test_research_adds_exact_probe_hits(self) -> None:
         pool = FakePool(make_settings(), small_response=json.dumps(["korupsi sektor pendidikan"]))
         pasal = FakePasalClient()
