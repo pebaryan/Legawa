@@ -47,6 +47,20 @@
       "title": "Peraturan Presiden Nomor 12 Tahun 2021 tentang Perubahan Atas Peraturan Presiden Nomor 16 Tahun 2018 Tentang Pengadaan B",
       "uri": "akn/id/act/perpres/2021/12"
     },
+    "akn/id/act/perpres/2024/83": {
+      "amended_by": [],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Peraturan Presiden Nomor 83 Tahun 2024 tentang Peraturan Presiden Nomor 83 Tahun 2024",
+      "uri": "akn/id/act/perpres/2024/83"
+    },
+    "akn/id/act/perpres/2025/115": {
+      "amended_by": [],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Peraturan Presiden Nomor 115 Tahun 2025 tentang Tata Kelola Penyelenggaraan Program Makan Bergizi Gratis",
+      "uri": "akn/id/act/perpres/2025/115"
+    },
     "akn/id/act/perpres/2025/19": {
       "amended_by": [],
       "repealed_by": null,
@@ -100,6 +114,13 @@
       "status": "berlaku",
       "title": "Undang-Undang Nomor 31 Tahun 1999 tentang Undang-Undang Nomor 31 Tahun 1999",
       "uri": "akn/id/act/uu/1999/31"
+    },
+    "akn/id/act/uu/1999/8": {
+      "amended_by": [],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 8 Tahun 1999 tentang PERLINDUNGAN KONSUMEN",
+      "uri": "akn/id/act/uu/1999/8"
     },
     "akn/id/act/uu/2001/20": {
       "amended_by": [
@@ -190,6 +211,29 @@
       "title": "Undang-Undang Nomor 12 Tahun 2012 tentang Pendidikan Tinggi",
       "uri": "akn/id/act/uu/2012/12"
     },
+    "akn/id/act/uu/2012/18": {
+      "amended_by": [
+        {
+          "frbr_uri": "/akn/id/act/perpu/2022/2",
+          "title": "Peraturan Pemerintah Pengganti Undang-Undang Nomor 2 Tahun 2022 tentang Cipta Kerja"
+        },
+        {
+          "frbr_uri": "/akn/id/act/uu/2023/6",
+          "title": "Undang-Undang Nomor 6 Tahun 2023 tentang PENETAPAN PERATURAN PEMERINTAH PENGGANTI UNDANG-UNDANG NOMOR 2 TAHUN 2022 TENTA"
+        },
+        {
+          "frbr_uri": "/akn/id/act/uu/2020/11",
+          "title": "Undang-Undang Nomor 11 Tahun 2020 tentang CIPTA KERJA"
+        }
+      ],
+      "repealed_by": {
+        "frbr_uri": "/akn/id/act/uu/2023/1",
+        "title": "Undang-Undang Nomor 1 Tahun 2023 tentang KITAB UNDANG-UNDANG HUKUM PIDANA"
+      },
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 18 Tahun 2012 tentang Undang-Undang Nomor 18 Tahun 2012",
+      "uri": "akn/id/act/uu/2012/18"
+    },
     "akn/id/act/uu/2013/20": {
       "amended_by": [],
       "repealed_by": {
@@ -260,6 +304,15 @@
       "UU 14/2005",
       "PP 37/2009",
       "PP 41/2009"
+    ],
+    "surat-mbg-keracunan-grobogan.txt": [
+      "Perpres 83/2024",
+      "Perpres 115/2025",
+      "UU 18/2012",
+      "UU 17/2023",
+      "Perpres 16/2018",
+      "Perpres 12/2021",
+      "UU 8/1999"
     ],
     "surat-ppds-internsip-dokter.txt": [
       "UU 17/2023",

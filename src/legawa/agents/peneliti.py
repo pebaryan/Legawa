@@ -88,6 +88,15 @@ _CANONICAL_PROBES: list[tuple[tuple[str, ...], str]] = [
     (("kesehatan", "tenaga kesehatan", "rumah sakit", "dokter", "ppds"), "akn/id/act/pp/2024/28"),  # PP pelaksanaan UU 17/2023
     (("dokter", "ppds", "pendidikan kedokteran", "pendidikan dokter spesialis"), "akn/id/act/uu/2013/20"),  # UU Pendidikan Kedokteran
     (("internsip", "dokter internsip", "dokter gigi internsip"), "akn/id/act/permenkes/2022/7"),  # Permenkes Internsip
+    # Program Makan Bergizi Gratis & keselamatan pangan publik
+    (("makan bergizi gratis", "mbg", "badan gizi nasional", "bgn", "sppg", "satuan pelayanan pemenuhan gizi"),
+     "akn/id/act/perpres/2024/83"),  # Perpres pembentukan BGN
+    (("makan bergizi gratis", "mbg", "sppg", "tata kelola gizi"),
+     "akn/id/act/perpres/2025/115"),  # Perpres tata kelola MBG
+    (("pangan", "keselamatan pangan", "keracunan pangan", "haccp", "mutu pangan"),
+     "akn/id/act/uu/2012/18"),  # UU Pangan
+    (("perlindungan konsumen", "konsumen", "ganti rugi konsumen"),
+     "akn/id/act/uu/1999/8"),  # UU Perlindungan Konsumen
     # Transportasi (lalu lintas, perkeretaapian, EV, asuransi korban)
     (("lalu lintas", "angkutan jalan", "kendaraan bermotor", "sopir", "pengemudi", "taksi", "angkutan umum"),
      "akn/id/act/uu/2009/22"),  # UU LLAJ

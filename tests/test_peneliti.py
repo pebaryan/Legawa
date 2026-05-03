@@ -116,6 +116,24 @@ class PenelitiTests(unittest.TestCase):
         self.assertIn("akn/id/act/uu/2007/23", uris)  # UU Perkeretaapian
         self.assertIn("akn/id/act/perpres/2019/55", uris)  # Perpres EV
 
+    def test_canonical_probe_uris_mbg(self) -> None:
+        uris = _canonical_probe_uris(
+            "akuntabilitas Program Makan Bergizi Gratis dan keselamatan pangan SPPG",
+            ["Badan Gizi Nasional", "keracunan pangan sekolah"],
+        )
+        self.assertIn("akn/id/act/perpres/2024/83", uris)  # Perpres BGN
+        self.assertIn("akn/id/act/perpres/2025/115", uris)  # Perpres MBG ops
+        self.assertIn("akn/id/act/uu/2012/18", uris)  # UU Pangan
+        # Perlindungan konsumen probe should NOT fire here (no consumer keyword)
+        self.assertNotIn("akn/id/act/uu/1999/8", uris)
+
+    def test_canonical_probe_uris_perlindungan_konsumen(self) -> None:
+        uris = _canonical_probe_uris(
+            "ganti rugi konsumen pasca insiden produk cacat",
+            ["perlindungan konsumen"],
+        )
+        self.assertIn("akn/id/act/uu/1999/8", uris)
+
     def test_canonical_probe_uris_jasa_raharja(self) -> None:
         uris = _canonical_probe_uris(
             "santunan korban kecelakaan lalu lintas dan tanggung jawab Jasa Raharja",
