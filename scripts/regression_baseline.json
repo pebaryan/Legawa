@@ -1,0 +1,273 @@
+{
+  "canonical_probes": {
+    "akn/id/act/permenkes/2022/7": {
+      "amended_by": [],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Peraturan Menteri Nomor 7 Tahun 2022 tentang PENYELENGGARAAN PROGRAM INTERNSIP DOKTER DAN DOKTER GIGI",
+      "uri": "akn/id/act/permenkes/2022/7"
+    },
+    "akn/id/act/perpres/2018/16": {
+      "amended_by": [
+        {
+          "frbr_uri": "/akn/id/act/perpres/2021/12",
+          "title": "Peraturan Presiden Nomor 12 Tahun 2021 tentang Perubahan Atas Peraturan Presiden Nomor 16 Tahun 2018 Tentang Pengadaan B"
+        },
+        {
+          "frbr_uri": "/akn/id/act/perpres/2025/46",
+          "title": "Peraturan Presiden Nomor 46 Tahun 2025 tentang Perubahan Kedua atas Peraturan Presiden Nomor 16 Tahun 2018 tentang Penga"
+        }
+      ],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Peraturan Presiden Nomor 16 Tahun 2018 tentang Pengadaan Barang/jasa Pemerintah",
+      "uri": "akn/id/act/perpres/2018/16"
+    },
+    "akn/id/act/perpres/2019/55": {
+      "amended_by": [
+        {
+          "frbr_uri": "/akn/id/act/perpres/2023/79",
+          "title": "Peraturan Presiden Nomor 79 Tahun 2023 tentang Perubahan Atas Peraturan Presiden Nomor 55 Tahun 2019 Tentang Percepatan "
+        }
+      ],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Peraturan Presiden Nomor 55 Tahun 2019 tentang Percepatan Program Kendaraan Bermotor Listrik Berbasis Baterai (battery E",
+      "uri": "akn/id/act/perpres/2019/55"
+    },
+    "akn/id/act/perpres/2021/12": {
+      "amended_by": [
+        {
+          "frbr_uri": "/akn/id/act/perpres/2025/46",
+          "title": "Peraturan Presiden Nomor 46 Tahun 2025 tentang Perubahan Kedua atas Peraturan Presiden Nomor 16 Tahun 2018 tentang Penga"
+        }
+      ],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Peraturan Presiden Nomor 12 Tahun 2021 tentang Perubahan Atas Peraturan Presiden Nomor 16 Tahun 2018 Tentang Pengadaan B",
+      "uri": "akn/id/act/perpres/2021/12"
+    },
+    "akn/id/act/perpres/2025/19": {
+      "amended_by": [],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Peraturan Presiden Nomor 19 Tahun 2025 tentang Tunjangan Kinerja Pegawai di Lingkungan Kementerian Pendidikan Tinggi, Sa",
+      "uri": "akn/id/act/perpres/2025/19"
+    },
+    "akn/id/act/pp/2021/35": {
+      "amended_by": [],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Peraturan Pemerintah Nomor 35 Tahun 2021 tentang Perjanjian Kerja Waktu Tertentu, Alih Daya, Waktu Kerja dan Waktu Istir",
+      "uri": "akn/id/act/pp/2021/35"
+    },
+    "akn/id/act/pp/2024/28": {
+      "amended_by": [],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Peraturan Pemerintah Nomor 28 Tahun 2024 tentang Peraturan Pelaksanaan Undang-Undang Nomor 17 Tahun 2023 tentang Kesehat",
+      "uri": "akn/id/act/pp/2024/28"
+    },
+    "akn/id/act/uu/1964/33": {
+      "amended_by": [],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 33 Tahun 1964 tentang Dana Pertanggungan Wajib Kecelakaan Penumpang",
+      "uri": "akn/id/act/uu/1964/33"
+    },
+    "akn/id/act/uu/1964/34": {
+      "amended_by": [],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 34 Tahun 1964 tentang Dana Pertanggungan Wajib Kecelakaan Lalu-lintas Jalan",
+      "uri": "akn/id/act/uu/1964/34"
+    },
+    "akn/id/act/uu/1999/31": {
+      "amended_by": [
+        {
+          "frbr_uri": "/akn/id/act/uu/2001/20",
+          "title": "Undang-Undang Nomor 20 Tahun 2001 tentang Perubahan Uu 31-1999 Tentang Pemberantasan Tindak Pidana Korupsi"
+        },
+        {
+          "frbr_uri": "/akn/id/act/uu/2002/30",
+          "title": "Undang-Undang Nomor 30 Tahun 2002 tentang Komisi Pemberantasan Tindak Pidana Korupsi"
+        }
+      ],
+      "repealed_by": {
+        "frbr_uri": "/akn/id/act/uu/2002/30",
+        "title": "Undang-Undang Nomor 30 Tahun 2002 tentang Komisi Pemberantasan Tindak Pidana Korupsi"
+      },
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 31 Tahun 1999 tentang Undang-Undang Nomor 31 Tahun 1999",
+      "uri": "akn/id/act/uu/1999/31"
+    },
+    "akn/id/act/uu/2001/20": {
+      "amended_by": [
+        {
+          "frbr_uri": "/akn/id/act/uu/2002/30",
+          "title": "Undang-Undang Nomor 30 Tahun 2002 tentang Komisi Pemberantasan Tindak Pidana Korupsi"
+        }
+      ],
+      "repealed_by": {
+        "frbr_uri": "/akn/id/act/uu/2002/30",
+        "title": "Undang-Undang Nomor 30 Tahun 2002 tentang Komisi Pemberantasan Tindak Pidana Korupsi"
+      },
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 20 Tahun 2001 tentang Perubahan Uu 31-1999 Tentang Pemberantasan Tindak Pidana Korupsi",
+      "uri": "akn/id/act/uu/2001/20"
+    },
+    "akn/id/act/uu/2003/13": {
+      "amended_by": [
+        {
+          "frbr_uri": "/akn/id/act/uu/2023/6",
+          "title": "Undang-Undang Nomor 6 Tahun 2023 tentang PENETAPAN PERATURAN PEMERINTAH PENGGANTI UNDANG-UNDANG NOMOR 2 TAHUN 2022 TENTA"
+        },
+        {
+          "frbr_uri": "/akn/id/act/perpu/2022/2",
+          "title": "Peraturan Pemerintah Pengganti Undang-Undang Nomor 2 Tahun 2022 tentang Cipta Kerja"
+        },
+        {
+          "frbr_uri": "/akn/id/act/uu/2020/11",
+          "title": "Undang-Undang Nomor 11 Tahun 2020 tentang CIPTA KERJA"
+        }
+      ],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 13 Tahun 2003 tentang KETENAGAKERJAAN",
+      "uri": "akn/id/act/uu/2003/13"
+    },
+    "akn/id/act/uu/2005/14": {
+      "amended_by": [],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 14 Tahun 2005 tentang Guru dan Dosen",
+      "uri": "akn/id/act/uu/2005/14"
+    },
+    "akn/id/act/uu/2007/23": {
+      "amended_by": [
+        {
+          "frbr_uri": "/akn/id/act/perpu/2022/2",
+          "title": "Peraturan Pemerintah Pengganti Undang-Undang Nomor 2 Tahun 2022 tentang Cipta Kerja"
+        },
+        {
+          "frbr_uri": "/akn/id/act/uu/2023/6",
+          "title": "Undang-Undang Nomor 6 Tahun 2023 tentang PENETAPAN PERATURAN PEMERINTAH PENGGANTI UNDANG-UNDANG NOMOR 2 TAHUN 2022 TENTA"
+        },
+        {
+          "frbr_uri": "/akn/id/act/uu/2020/11",
+          "title": "Undang-Undang Nomor 11 Tahun 2020 tentang CIPTA KERJA"
+        }
+      ],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 23 Tahun 2007 tentang Undang-Undang Nomor 23 Tahun 2007",
+      "uri": "akn/id/act/uu/2007/23"
+    },
+    "akn/id/act/uu/2009/22": {
+      "amended_by": [
+        {
+          "frbr_uri": "/akn/id/act/perpu/2022/2",
+          "title": "Peraturan Pemerintah Pengganti Undang-Undang Nomor 2 Tahun 2022 tentang Cipta Kerja"
+        },
+        {
+          "frbr_uri": "/akn/id/act/uu/2023/6",
+          "title": "Undang-Undang Nomor 6 Tahun 2023 tentang PENETAPAN PERATURAN PEMERINTAH PENGGANTI UNDANG-UNDANG NOMOR 2 TAHUN 2022 TENTA"
+        },
+        {
+          "frbr_uri": "/akn/id/act/uu/2020/11",
+          "title": "Undang-Undang Nomor 11 Tahun 2020 tentang CIPTA KERJA"
+        }
+      ],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 22 Tahun 2009 tentang Undang-Undang Nomor 22 Tahun 2009",
+      "uri": "akn/id/act/uu/2009/22"
+    },
+    "akn/id/act/uu/2012/12": {
+      "amended_by": [],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 12 Tahun 2012 tentang Pendidikan Tinggi",
+      "uri": "akn/id/act/uu/2012/12"
+    },
+    "akn/id/act/uu/2013/20": {
+      "amended_by": [],
+      "repealed_by": {
+        "frbr_uri": "/akn/id/act/uu/2023/17",
+        "title": "Undang-Undang Nomor 17 Tahun 2023 tentang Kesehatan"
+      },
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 20 Tahun 2013 tentang Pendidikan Kodekteran",
+      "uri": "akn/id/act/uu/2013/20"
+    },
+    "akn/id/act/uu/2023/17": {
+      "amended_by": [],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 17 Tahun 2023 tentang Kesehatan",
+      "uri": "akn/id/act/uu/2023/17"
+    },
+    "akn/id/act/uu/2023/6": {
+      "amended_by": [
+        {
+          "frbr_uri": "/akn/id/act/uu/2025/14",
+          "title": "Undang-Undang Nomor 14 Tahun 2025 tentang Perubahan Ketiga atas Undang-Undang Nomor 8 Tahun 2019 tentang Ibadah Haji dan"
+        },
+        {
+          "frbr_uri": "/akn/id/act/uu/2026/1",
+          "title": "Undang-Undang Nomor 1 Tahun 2026 tentang Penyesuaian Pidana"
+        },
+        {
+          "frbr_uri": "/akn/id/act/uu/2025/18",
+          "title": "Undang-Undang Nomor 18 Tahun 2025 tentang Perubahan Ketiga Atas Undang-undang Nomor 10 Tahun 2009 Tentang Kepariwisataan"
+        },
+        {
+          "frbr_uri": "/akn/id/act/uu/2025/16",
+          "title": "Undang-Undang Nomor 16 Tahun 2025 tentang Perubahan Keempat atas Undang-Undang Nomor 19 Tahun 2003 tentang Badan Usaha M"
+        },
+        {
+          "frbr_uri": "/akn/id/act/uu/2025/2",
+          "title": "Undang-Undang Nomor 2 Tahun 2025 tentang Perubahan Keempat atas Undang-Undang Nomor 4 Tahun 2009 tentang Pertambangan Mi"
+        }
+      ],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 6 Tahun 2023 tentang PENETAPAN PERATURAN PEMERINTAH PENGGANTI UNDANG-UNDANG NOMOR 2 TAHUN 2022 TENTA",
+      "uri": "akn/id/act/uu/2023/6"
+    }
+  },
+  "fixture_citations": {
+    "surat-bekasi-kereta-taksi.txt": [
+      "UU 22/2009",
+      "Permen 22/2009",
+      "UU 23/2007",
+      "Perpres 55/2019",
+      "UU 33/1964",
+      "UU 34/1964"
+    ],
+    "surat-buruh-outsourcing.txt": [
+      "UU 13/2003",
+      "UU 6/2023",
+      "UUD 1945"
+    ],
+    "surat-chromebook-sekolah.txt": [
+      "Perpres 16/2018",
+      "Perpres 12/2021"
+    ],
+    "surat-gaji-tunjangan-dosen.txt": [
+      "Permen 52/2025",
+      "Perpres 19/2025",
+      "UU 14/2005",
+      "PP 37/2009",
+      "PP 41/2009"
+    ],
+    "surat-ppds-internsip-dokter.txt": [
+      "UU 17/2023",
+      "PP 28/2024",
+      "Permenkes 7/2022",
+      "Permen 7/2022",
+      "UU 20/2013"
+    ]
+  },
+  "schema_version": 1
+}

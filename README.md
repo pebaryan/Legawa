@@ -72,6 +72,18 @@ Semua panggilan REST pasal.id dilewatkan melalui SQLite cache:
 
 Lokasi default: `~/.legawa/cache.db`. Override dengan `LEGAWA_CACHE_PATH=/custom/path.db`.
 
+## Regression check
+
+`scripts/regression_check.py` probes pasal.id for status and amendment-chain drift on every URI in `agents/peneliti._CANONICAL_PROBES` plus every regulation cited in `tests/fixtures/*.txt`, comparing against `scripts/regression_baseline.json`. Run periodically (suggested ~3-week cadence) to detect when an operative regulation has been superseded:
+
+```bash
+python scripts/regression_check.py            # exit 1 on drift, 0 if clean
+python scripts/regression_check.py --json     # machine-readable diff
+python scripts/regression_check.py --update-baseline  # snapshot current state
+```
+
+Does NOT re-run the live agents (those depend on the user's local llama.cpp + pasal.id credentials). Use it after model swaps or before publishing whitepapers to catch corpus drift early.
+
 ## Roadmap
 
 - [ ] **Pemantau Berita** — agen kelima untuk monitoring isu komisi dari sumber berita Indonesia (Kompas, Tempo, Detik, Antara). SMALL untuk klasifikasi & ekstraksi isu, BIG untuk daily/weekly digest dengan tautan ke peraturan terkait via pasal.id. Tambahkan setelah keempat agen pertama dipakai di lapangan.
