@@ -319,6 +319,91 @@ class CitationTests(unittest.TestCase):
         # get_law was attempted but failed silently
         self.assertEqual(fake.get_law_calls, ["akn/id/act/uu/2003/13"])
 
+    def test_verify_citation_falls_back_to_trusted_recent(self) -> None:
+        # Pasal.id returns no hit for Perpres 8/2026 (not yet ingested), but
+        # trusted_recent has it. Verifier should accept with topical-overlap
+        # enforced against the trusted title.
+        fake = FakePasalClient(responses={})
+        from legawa.tools.trusted_recent import TRUSTED_RECENT  # noqa: PLC0415
+
+        # Sanity check: the fixture entry exists.
+        self.assertIn("Perpres 8/2026", TRUSTED_RECENT)
+
+        check = verify_citation(
+            fake,
+            "Perpres 8/2026",
+            claimed_topic="Rencana Aksi Nasional Pencegahan Ekstremisme Berbasis Kekerasan",
+            check_amendments=False,
+        )
+        self.assertTrue(check.found)
+        self.assertIn("trusted_recent override", check.note or "")
+        self.assertIn("akn/id/act/perpres/2026/8", check.frbr_uri or "")
+
+    def test_verify_citation_trusted_recent_rejects_topical_mismatch(self) -> None:
+        # Trusted entry exists for Perpres 8/2026 (RAN PE counter-terrorism),
+        # but the claim is about something unrelated. Verifier must reject —
+        # we don't blanket-whitelist a (kind, number, year) tuple.
+        fake = FakePasalClient(responses={})
+
+        check = verify_citation(
+            fake,
+            "Perpres 8/2026",
+            claimed_topic="Pengadaan Barang Jasa Pemerintah",
+            check_amendments=False,
+        )
+        self.assertFalse(check.found)
+        self.assertIn("judul tidak cocok", check.note or "")
+        self.assertIn("trusted_recent", check.note or "")
+
+    def test_verify_citation_trusted_recent_fallback_on_pasal_unreachable(self) -> None:
+        # When pasal.id is down (auth failure, network error), trusted_recent
+        # should still serve as a fallback for citations we know about.
+        class FailingClient:
+            def search(self, **kwargs):
+                raise RuntimeError("Client error '401 Unauthorized'")
+
+        check = verify_citation(
+            FailingClient(),
+            "Perpres 8/2026",
+            claimed_topic="Rencana Aksi Nasional Pencegahan Ekstremisme",
+            check_amendments=False,
+        )
+        self.assertTrue(check.found)
+        self.assertIn("trusted_recent override", check.note or "")
+        self.assertIn("pasal.id unreachable", check.note or "")
+
+    def test_verify_citation_pasal_unreachable_unknown_ref_surfaces_error(self) -> None:
+        # If pasal.id is unreachable AND the citation isn't in trusted_recent,
+        # we want the user to see the original transport error so they can
+        # fix the underlying issue (refresh token, check network).
+        class FailingClient:
+            def search(self, **kwargs):
+                raise RuntimeError("Client error '401 Unauthorized'")
+
+        check = verify_citation(
+            FailingClient(),
+            "UU 17/2023",
+            claimed_topic="Kesehatan",
+            check_amendments=False,
+        )
+        self.assertFalse(check.found)
+        self.assertIn("verifikasi gagal", check.note or "")
+        self.assertIn("401", check.note or "")
+
+    def test_verify_citation_unknown_reference_still_rejects_cleanly(self) -> None:
+        # Sanity: a fresh regulation NOT in trusted_recent and NOT on pasal.id
+        # still rejects with TIDAK DITEMUKAN — no silent acceptance.
+        fake = FakePasalClient(responses={})
+
+        check = verify_citation(
+            fake,
+            "Perpres 999/2026",
+            claimed_topic="Hypothetical regulation that doesn't exist",
+            check_amendments=False,
+        )
+        self.assertFalse(check.found)
+        self.assertIn("TIDAK DITEMUKAN", check.note or "")
+
     def test_verify_citations_formats_mixed_results(self) -> None:
         fake = FakePasalClient(
             {

@@ -12,6 +12,8 @@ import re
 from dataclasses import dataclass
 from typing import Any, Iterable
 
+from .trusted_recent import lookup as _trusted_lookup
+
 
 _FRBR_RE = re.compile(
     r"\b(?:frbr_uri['\"]?\s*[:=]\s*)?akn/id/act/(?P<kind>[a-z_]+)/(?P<year>\d{4})/(?P<number>\d+)\b",
@@ -588,6 +590,38 @@ def verify_citation(
     try:
         response = pasal_client.search(**params)
     except Exception as exc:  # noqa: BLE001
+        # Pasal.id unreachable (network, 401, 5xx). Try trusted_recent as a
+        # fallback — citations we have local source-of-truth for shouldn't
+        # be blocked by an outage. If the citation is NOT in trusted_recent,
+        # surface the original transport error so the user knows to fix it.
+        trusted = _trusted_lookup(primary)
+        if trusted is not None:
+            title = trusted.get("title")
+            if claimed_topic and title and not _topics_overlap(claimed_topic, title):
+                return CitationCheck(
+                    reference=primary,
+                    found=False,
+                    query=query,
+                    title=title,
+                    frbr_uri=trusted.get("frbr_uri"),
+                    status=trusted.get("status"),
+                    note=(
+                        f"judul tidak cocok dengan klaim '{claimed_topic}' "
+                        f"(judul sebenarnya — sumber trusted_recent: '{title}')"
+                    ),
+                    claimed_topic=claimed_topic,
+                )
+            provenance = trusted.get("note") or "fresh regulation, not yet on pasal.id"
+            return CitationCheck(
+                reference=primary,
+                found=True,
+                query=query,
+                title=title,
+                frbr_uri=trusted.get("frbr_uri"),
+                status=trusted.get("status"),
+                note=f"trusted_recent override (pasal.id unreachable: {exc}) — {provenance}",
+                claimed_topic=claimed_topic,
+            )
         return CitationCheck(
             reference=expected_refs[0],
             found=False,
@@ -665,6 +699,41 @@ def verify_citation(
 
     if last_mismatch is not None:
         return last_mismatch
+
+    # Fallback: regulations confirmed real but not yet ingested by pasal.id.
+    # Keyed by the same normalized reference form. Topical overlap still
+    # enforced — we don't want to whitelist a (number, year) tuple that the
+    # model is hallucinating about; it must match the trusted title.
+    trusted = _trusted_lookup(primary)
+    if trusted is not None:
+        title = trusted.get("title")
+        frbr_uri = trusted.get("frbr_uri")
+        status = trusted.get("status")
+        if claimed_topic and title and not _topics_overlap(claimed_topic, title):
+            return CitationCheck(
+                reference=primary,
+                found=False,
+                query=query,
+                title=title,
+                frbr_uri=frbr_uri,
+                status=status,
+                note=(
+                    f"judul tidak cocok dengan klaim '{claimed_topic}' "
+                    f"(judul sebenarnya — sumber trusted_recent: '{title}')"
+                ),
+                claimed_topic=claimed_topic,
+            )
+        provenance = trusted.get("note") or "fresh regulation, not yet on pasal.id"
+        return CitationCheck(
+            reference=primary,
+            found=True,
+            query=query,
+            title=title,
+            frbr_uri=frbr_uri,
+            status=status,
+            note=f"trusted_recent override — {provenance}",
+            claimed_topic=claimed_topic,
+        )
 
     return CitationCheck(
         reference=expected_refs[0],
