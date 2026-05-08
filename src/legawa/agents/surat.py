@@ -202,8 +202,14 @@ def reply(
                 for check in failures
             ]
             msg = "surat: draft contains unverifiable citations: " + "; ".join(descriptions)
-            console.print(f"[red]{msg}[/red]")
-            raise ValueError(msg)
+            # Honour the global strict-citations toggle (consistent with
+            # penyusun / analis_ruu). When disabled, surface as a warning
+            # rather than blocking the draft — useful when pasal.id is
+            # rate-limited or returning transport errors.
+            if pool.settings.strict_citations:
+                console.print(f"[red]{msg}[/red]")
+                raise ValueError(msg)
+            console.print(f"[yellow]{msg}[/yellow]")
     return result
 
 

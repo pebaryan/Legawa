@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import sys
 import unittest
+from dataclasses import dataclass
 from pathlib import Path
 
 SRC = Path(__file__).resolve().parents[1] / "src"
@@ -10,6 +11,11 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from legawa.agents.surat import reply
+
+
+@dataclass
+class FakeSettings:
+    strict_citations: bool = True
 
 
 class FakeLLM:
@@ -23,9 +29,10 @@ class FakeLLM:
 
 
 class FakePool:
-    def __init__(self, small_response: str, big_response: str):
+    def __init__(self, small_response: str, big_response: str, *, strict_citations: bool = True):
         self.small = FakeLLM(small_response)
         self.big = FakeLLM(big_response)
+        self.settings = FakeSettings(strict_citations=strict_citations)
 
 
 class FakePasalClient:
@@ -78,6 +85,21 @@ class SuratReplyTests(unittest.TestCase):
         self.assertIn("Perpres 76/2021", str(ctx.exception))
         self.assertEqual(len(pool.big.calls), 1)
         self.assertGreaterEqual(len(pasal.calls), 2)
+
+    def test_reply_warns_instead_of_blocking_when_strict_disabled(self) -> None:
+        # With strict_citations=False, an unverifiable citation should warn,
+        # not block — consistent with penyusun and analis_ruu behaviour.
+        # Useful when pasal.id is rate-limited or returning transport errors.
+        pool = FakePool(
+            self._triase_json(),
+            "Kami merujuk pada UU 13/2003 dan Perpres 76/2021 dalam balasan ini.",
+            strict_citations=False,
+        )
+        pasal = FakePasalClient()
+
+        result = reply(pool, pasal, "surat uji", verify_law=True)
+        self.assertIsNotNone(result.balasan)
+        self.assertIn("Perpres 76/2021", result.balasan or "")
 
     def test_reply_accepts_verified_citation(self) -> None:
         pool = FakePool(

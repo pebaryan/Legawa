@@ -142,6 +142,76 @@ class PenelitiTests(unittest.TestCase):
         self.assertIn("akn/id/act/uu/1964/33", uris)
         self.assertIn("akn/id/act/uu/1964/34", uris)
 
+    def test_canonical_probe_uris_komisi_iii_kuhap_kpk(self) -> None:
+        uris = _canonical_probe_uris(
+            "penegakan hukum kasus korupsi daerah dan praperadilan",
+            ["KPK", "KUHAP"],
+        )
+        self.assertIn("akn/id/act/uu/1981/8", uris)  # KUHAP
+        self.assertIn("akn/id/act/uu/2002/30", uris)  # KPK
+        self.assertIn("akn/id/act/uu/2019/19", uris)  # KPK perubahan
+
+    def test_canonical_probe_uris_komisi_viii_bencana_anak(self) -> None:
+        uris = _canonical_probe_uris(
+            "bantuan sosial korban bencana yang melibatkan anak",
+            ["perlindungan anak", "BNPB"],
+        )
+        self.assertIn("akn/id/act/uu/2007/24", uris)  # Penanggulangan Bencana
+        self.assertIn("akn/id/act/uu/2014/35", uris)  # Perlindungan Anak
+
+    def test_canonical_probe_uris_komisi_i_diplomasi(self) -> None:
+        uris = _canonical_probe_uris(
+            "perlindungan WNI di luar negeri pasca konflik Gaza",
+            ["hubungan luar negeri", "perjanjian internasional"],
+        )
+        self.assertIn("akn/id/act/uu/1999/37", uris)
+        self.assertIn("akn/id/act/uu/2000/24", uris)
+
+    def test_canonical_probe_uris_komisi_xiii_ham_imigrasi(self) -> None:
+        uris = _canonical_probe_uris(
+            "penanganan pengungsi dan kewajiban HAM Indonesia",
+            ["imigrasi", "HAM"],
+        )
+        self.assertIn("akn/id/act/uu/1999/39", uris)
+        self.assertIn("akn/id/act/uu/2011/6", uris)
+
+    def test_canonical_probe_uris_komisi_xi_keuangan(self) -> None:
+        uris = _canonical_probe_uris(
+            "reformasi sektor keuangan, OJK, dan harmonisasi perpajakan UMKM",
+            ["P2SK", "fintech"],
+        )
+        self.assertIn("akn/id/act/uu/2023/4", uris)  # P2SK
+        self.assertIn("akn/id/act/uu/2011/21", uris)  # OJK
+        self.assertIn("akn/id/act/uu/2021/7", uris)  # HPP
+        self.assertIn("akn/id/act/uu/2008/20", uris)  # UMKM (keyword 'UMKM' in topic)
+
+    def test_canonical_probe_uris_komisi_xii_energi_minerba(self) -> None:
+        uris = _canonical_probe_uris(
+            "transisi energi dan dampak lingkungan tambang nikel",
+            ["minerba", "lingkungan hidup"],
+        )
+        self.assertIn("akn/id/act/uu/2007/30", uris)  # Energi (transisi energi trigger)
+        self.assertIn("akn/id/act/uu/2009/32", uris)  # PPLH
+        self.assertIn("akn/id/act/uu/2020/3", uris)  # Minerba
+
+    def test_canonical_probe_uris_komisi_vi_bumn_perdagangan(self) -> None:
+        uris = _canonical_probe_uris(
+            "tata kelola BUMN dan perlindungan konsumen perdagangan",
+            ["BUMN", "perdagangan", "standardisasi"],
+        )
+        self.assertIn("akn/id/act/uu/2003/19", uris)  # BUMN
+        self.assertIn("akn/id/act/uu/2014/7", uris)  # Perdagangan
+        self.assertIn("akn/id/act/uu/2014/20", uris)  # Standardisasi
+        self.assertIn("akn/id/act/uu/1999/8", uris)  # Perlindungan Konsumen
+
+    def test_canonical_probe_uris_komisi_iv_lahan_pangan(self) -> None:
+        uris = _canonical_probe_uris(
+            "alih fungsi lahan pertanian dan ketahanan pangan",
+            ["LP2B"],
+        )
+        self.assertIn("akn/id/act/uu/2009/41", uris)  # Perlindungan LP2B
+        self.assertIn("akn/id/act/uu/2012/18", uris)  # UU Pangan
+
     def test_canonical_probe_uris_no_match_for_unrelated_topic(self) -> None:
         uris = _canonical_probe_uris(
             "regulasi izin usaha pertambangan emas skala kecil",

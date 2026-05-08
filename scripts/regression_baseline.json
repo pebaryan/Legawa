@@ -96,6 +96,16 @@
       "title": "Undang-Undang Nomor 34 Tahun 1964 tentang Dana Pertanggungan Wajib Kecelakaan Lalu-lintas Jalan",
       "uri": "akn/id/act/uu/1964/34"
     },
+    "akn/id/act/uu/1981/8": {
+      "amended_by": [],
+      "repealed_by": {
+        "frbr_uri": "/akn/id/act/uu/2025/20",
+        "title": "Undang-Undang Nomor 20 Tahun 2025 tentang Kitab Undang-Undang Hukum Acara Pidana"
+      },
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 8 Tahun 1981 tentang Hukum Acara Pidana",
+      "uri": "akn/id/act/uu/1981/8"
+    },
     "akn/id/act/uu/1999/31": {
       "amended_by": [
         {
@@ -115,12 +125,33 @@
       "title": "Undang-Undang Nomor 31 Tahun 1999 tentang Undang-Undang Nomor 31 Tahun 1999",
       "uri": "akn/id/act/uu/1999/31"
     },
+    "akn/id/act/uu/1999/37": {
+      "amended_by": [],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 37 Tahun 1999 tentang Hubungan Luar Negeri",
+      "uri": "akn/id/act/uu/1999/37"
+    },
+    "akn/id/act/uu/1999/39": {
+      "amended_by": [],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 39 Tahun 1999 tentang Hak Asasi Manusia",
+      "uri": "akn/id/act/uu/1999/39"
+    },
     "akn/id/act/uu/1999/8": {
       "amended_by": [],
       "repealed_by": null,
       "status": "berlaku",
       "title": "Undang-Undang Nomor 8 Tahun 1999 tentang PERLINDUNGAN KONSUMEN",
       "uri": "akn/id/act/uu/1999/8"
+    },
+    "akn/id/act/uu/2000/24": {
+      "amended_by": [],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 24 Tahun 2000 tentang Perjanjian Internasional",
+      "uri": "akn/id/act/uu/2000/24"
     },
     "akn/id/act/uu/2001/20": {
       "amended_by": [
@@ -136,6 +167,26 @@
       "status": "berlaku",
       "title": "Undang-Undang Nomor 20 Tahun 2001 tentang Perubahan Uu 31-1999 Tentang Pemberantasan Tindak Pidana Korupsi",
       "uri": "akn/id/act/uu/2001/20"
+    },
+    "akn/id/act/uu/2002/30": {
+      "amended_by": [
+        {
+          "frbr_uri": "/akn/id/act/uu/2015/10",
+          "title": "Undang-Undang Nomor 10 Tahun 2015 tentang Penetapan Peraturan Pemerintah Pengganti Undang-Undang Nomor 1 Tahun 2015 Tent"
+        },
+        {
+          "frbr_uri": "/akn/id/act/uu/2019/19",
+          "title": "Undang-Undang Nomor 19 Tahun 2019 tentang Perubahan Kedua atas Undang-Undang Nomor 30 Tahun 2002 tentang Komisi Pemberan"
+        },
+        {
+          "frbr_uri": "/akn/id/act/perppu/2015/1",
+          "title": "Peraturan Pemerintah Pengganti Undang-Undang Nomor 1 Tahun 2015 tentang Perubahan Atas Undang-undang Nomor 30 Tahun 2002"
+        }
+      ],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 30 Tahun 2002 tentang Komisi Pemberantasan Tindak Pidana Korupsi",
+      "uri": "akn/id/act/uu/2002/30"
     },
     "akn/id/act/uu/2003/13": {
       "amended_by": [
@@ -156,6 +207,41 @@
       "status": "berlaku",
       "title": "Undang-Undang Nomor 13 Tahun 2003 tentang KETENAGAKERJAAN",
       "uri": "akn/id/act/uu/2003/13"
+    },
+    "akn/id/act/uu/2003/19": {
+      "amended_by": [
+        {
+          "frbr_uri": "/akn/id/act/uu/2025/1",
+          "title": "Undang-Undang Nomor 1 Tahun 2025 tentang Perubahan Ketiga Atas Undang-undang Nomor 19 Tahun 2003 Tentang Badan Usaha Mil"
+        },
+        {
+          "frbr_uri": "/akn/id/act/uu/2025/16",
+          "title": "Undang-Undang Nomor 16 Tahun 2025 tentang Perubahan Keempat atas Undang-Undang Nomor 19 Tahun 2003 tentang Badan Usaha M"
+        },
+        {
+          "frbr_uri": "/akn/id/act/perpu/2022/2",
+          "title": "Peraturan Pemerintah Pengganti Undang-Undang Nomor 2 Tahun 2022 tentang Cipta Kerja"
+        },
+        {
+          "frbr_uri": "/akn/id/act/uu/2023/6",
+          "title": "Undang-Undang Nomor 6 Tahun 2023 tentang PENETAPAN PERATURAN PEMERINTAH PENGGANTI UNDANG-UNDANG NOMOR 2 TAHUN 2022 TENTA"
+        },
+        {
+          "frbr_uri": "/akn/id/act/uu/2020/11",
+          "title": "Undang-Undang Nomor 11 Tahun 2020 tentang CIPTA KERJA"
+        }
+      ],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 19 Tahun 2003 tentang Badan Usaha Milik Negara",
+      "uri": "akn/id/act/uu/2003/19"
+    },
+    "akn/id/act/uu/2004/23": {
+      "amended_by": [],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 23 Tahun 2004 tentang Penghapusan Kekerasan dalam Rumah Tangga",
+      "uri": "akn/id/act/uu/2004/23"
     },
     "akn/id/act/uu/2005/14": {
       "amended_by": [],
@@ -184,6 +270,55 @@
       "title": "Undang-Undang Nomor 23 Tahun 2007 tentang Undang-Undang Nomor 23 Tahun 2007",
       "uri": "akn/id/act/uu/2007/23"
     },
+    "akn/id/act/uu/2007/24": {
+      "amended_by": [],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 24 Tahun 2007 tentang Penanggulangan Bencana",
+      "uri": "akn/id/act/uu/2007/24"
+    },
+    "akn/id/act/uu/2007/30": {
+      "amended_by": [],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 30 Tahun 2007 tentang Energi",
+      "uri": "akn/id/act/uu/2007/30"
+    },
+    "akn/id/act/uu/2008/20": {
+      "amended_by": [
+        {
+          "frbr_uri": "/akn/id/act/perpu/2022/2",
+          "title": "Peraturan Pemerintah Pengganti Undang-Undang Nomor 2 Tahun 2022 tentang Cipta Kerja"
+        },
+        {
+          "frbr_uri": "/akn/id/act/uu/2023/6",
+          "title": "Undang-Undang Nomor 6 Tahun 2023 tentang PENETAPAN PERATURAN PEMERINTAH PENGGANTI UNDANG-UNDANG NOMOR 2 TAHUN 2022 TENTA"
+        },
+        {
+          "frbr_uri": "/akn/id/act/uu/2020/11",
+          "title": "Undang-Undang Nomor 11 Tahun 2020 tentang CIPTA KERJA"
+        }
+      ],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 20 Tahun 2008 tentang Undang-Undang Nomor 20 Tahun 2008",
+      "uri": "akn/id/act/uu/2008/20"
+    },
+    "akn/id/act/uu/2009/11": {
+      "amended_by": [
+        {
+          "frbr_uri": "/akn/id/act/uu/2019/14",
+          "title": "Undang-Undang Nomor 14 Tahun 2019 tentang Pekerja Sosial"
+        }
+      ],
+      "repealed_by": {
+        "frbr_uri": "/akn/id/act/uu/2019/14",
+        "title": "Undang-Undang Nomor 14 Tahun 2019 tentang Pekerja Sosial"
+      },
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 11 Tahun 2009 tentang Undang-Undang Nomor 11 Tahun 2009",
+      "uri": "akn/id/act/uu/2009/11"
+    },
     "akn/id/act/uu/2009/22": {
       "amended_by": [
         {
@@ -203,6 +338,85 @@
       "status": "berlaku",
       "title": "Undang-Undang Nomor 22 Tahun 2009 tentang Undang-Undang Nomor 22 Tahun 2009",
       "uri": "akn/id/act/uu/2009/22"
+    },
+    "akn/id/act/uu/2009/32": {
+      "amended_by": [
+        {
+          "frbr_uri": "/akn/id/act/perpu/2022/2",
+          "title": "Peraturan Pemerintah Pengganti Undang-Undang Nomor 2 Tahun 2022 tentang Cipta Kerja"
+        },
+        {
+          "frbr_uri": "/akn/id/act/uu/2023/6",
+          "title": "Undang-Undang Nomor 6 Tahun 2023 tentang PENETAPAN PERATURAN PEMERINTAH PENGGANTI UNDANG-UNDANG NOMOR 2 TAHUN 2022 TENTA"
+        },
+        {
+          "frbr_uri": "/akn/id/act/uu/2020/11",
+          "title": "Undang-Undang Nomor 11 Tahun 2020 tentang CIPTA KERJA"
+        }
+      ],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 32 Tahun 2009 tentang Undang-Undang Nomor 32 Tahun 2009",
+      "uri": "akn/id/act/uu/2009/32"
+    },
+    "akn/id/act/uu/2009/41": {
+      "amended_by": [
+        {
+          "frbr_uri": "/akn/id/act/perpu/2022/2",
+          "title": "Peraturan Pemerintah Pengganti Undang-Undang Nomor 2 Tahun 2022 tentang Cipta Kerja"
+        },
+        {
+          "frbr_uri": "/akn/id/act/uu/2023/6",
+          "title": "Undang-Undang Nomor 6 Tahun 2023 tentang PENETAPAN PERATURAN PEMERINTAH PENGGANTI UNDANG-UNDANG NOMOR 2 TAHUN 2022 TENTA"
+        },
+        {
+          "frbr_uri": "/akn/id/act/uu/2020/11",
+          "title": "Undang-Undang Nomor 11 Tahun 2020 tentang CIPTA KERJA"
+        }
+      ],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 41 Tahun 2009 tentang Perlindungan Lahan Pertanian Pangan Berkelanjutan",
+      "uri": "akn/id/act/uu/2009/41"
+    },
+    "akn/id/act/uu/2011/21": {
+      "amended_by": [
+        {
+          "frbr_uri": "/akn/id/act/uu/2023/4",
+          "title": "Undang-Undang Nomor 4 Tahun 2023 tentang Undang-Undang Nomor 4 Tahun 2023"
+        }
+      ],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 21 Tahun 2011 tentang Otoritas Jasa Keuangan",
+      "uri": "akn/id/act/uu/2011/21"
+    },
+    "akn/id/act/uu/2011/6": {
+      "amended_by": [
+        {
+          "frbr_uri": "/akn/id/act/uu/2024/63",
+          "title": "Undang-Undang Nomor 63 Tahun 2024 tentang Perubahan Ketiga atas Undang-Undang Nomor 6 Tahun 2011 tentan Keimigrasian"
+        },
+        {
+          "frbr_uri": "/akn/id/act/perpu/2022/2",
+          "title": "Peraturan Pemerintah Pengganti Undang-Undang Nomor 2 Tahun 2022 tentang Cipta Kerja"
+        },
+        {
+          "frbr_uri": "/akn/id/act/uu/2023/6",
+          "title": "Undang-Undang Nomor 6 Tahun 2023 tentang PENETAPAN PERATURAN PEMERINTAH PENGGANTI UNDANG-UNDANG NOMOR 2 TAHUN 2022 TENTA"
+        },
+        {
+          "frbr_uri": "/akn/id/act/uu/2020/11",
+          "title": "Undang-Undang Nomor 11 Tahun 2020 tentang CIPTA KERJA"
+        }
+      ],
+      "repealed_by": {
+        "frbr_uri": "/akn/id/act/uu/2023/1",
+        "title": "Undang-Undang Nomor 1 Tahun 2023 tentang KITAB UNDANG-UNDANG HUKUM PIDANA"
+      },
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 6 Tahun 2011 tentang Undang-Undang Nomor 6 Tahun 2011",
+      "uri": "akn/id/act/uu/2011/6"
     },
     "akn/id/act/uu/2012/12": {
       "amended_by": [],
@@ -244,12 +458,91 @@
       "title": "Undang-Undang Nomor 20 Tahun 2013 tentang Pendidikan Kodekteran",
       "uri": "akn/id/act/uu/2013/20"
     },
+    "akn/id/act/uu/2014/20": {
+      "amended_by": [],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 20 Tahun 2014 tentang Standardisasi dan Penilaian Kesesuaian",
+      "uri": "akn/id/act/uu/2014/20"
+    },
+    "akn/id/act/uu/2014/35": {
+      "amended_by": [],
+      "repealed_by": {
+        "frbr_uri": "/akn/id/act/uu/2023/1",
+        "title": "Undang-Undang Nomor 1 Tahun 2023 tentang KITAB UNDANG-UNDANG HUKUM PIDANA"
+      },
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 35 Tahun 2014 tentang Perubahan atas Undang-Undang Nomor 23 Tahun 2002 Tentang Perlindungan Anak",
+      "uri": "akn/id/act/uu/2014/35"
+    },
+    "akn/id/act/uu/2014/7": {
+      "amended_by": [
+        {
+          "frbr_uri": "/akn/id/act/perpu/2022/2",
+          "title": "Peraturan Pemerintah Pengganti Undang-Undang Nomor 2 Tahun 2022 tentang Cipta Kerja"
+        },
+        {
+          "frbr_uri": "/akn/id/act/uu/2023/6",
+          "title": "Undang-Undang Nomor 6 Tahun 2023 tentang PENETAPAN PERATURAN PEMERINTAH PENGGANTI UNDANG-UNDANG NOMOR 2 TAHUN 2022 TENTA"
+        },
+        {
+          "frbr_uri": "/akn/id/act/uu/2020/11",
+          "title": "Undang-Undang Nomor 11 Tahun 2020 tentang CIPTA KERJA"
+        }
+      ],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 7 Tahun 2014 tentang Undang-Undang Nomor 7 Tahun 2014",
+      "uri": "akn/id/act/uu/2014/7"
+    },
+    "akn/id/act/uu/2019/19": {
+      "amended_by": [],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 19 Tahun 2019 tentang Perubahan Kedua atas Undang-Undang Nomor 30 Tahun 2002 tentang Komisi Pemberan",
+      "uri": "akn/id/act/uu/2019/19"
+    },
+    "akn/id/act/uu/2020/3": {
+      "amended_by": [
+        {
+          "frbr_uri": "/akn/id/act/uu/2025/2",
+          "title": "Undang-Undang Nomor 2 Tahun 2025 tentang Perubahan Keempat atas Undang-Undang Nomor 4 Tahun 2009 tentang Pertambangan Mi"
+        },
+        {
+          "frbr_uri": "/akn/id/act/uu/2023/6",
+          "title": "Undang-Undang Nomor 6 Tahun 2023 tentang PENETAPAN PERATURAN PEMERINTAH PENGGANTI UNDANG-UNDANG NOMOR 2 TAHUN 2022 TENTA"
+        }
+      ],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 3 Tahun 2020 tentang Perubahan Atas Undang-undang Nomor 4 Tahun 2009 Tentang Pertambangan Mineral da",
+      "uri": "akn/id/act/uu/2020/3"
+    },
+    "akn/id/act/uu/2021/7": {
+      "amended_by": [
+        {
+          "frbr_uri": "/akn/id/act/uu/2023/6",
+          "title": "Undang-Undang Nomor 6 Tahun 2023 tentang PENETAPAN PERATURAN PEMERINTAH PENGGANTI UNDANG-UNDANG NOMOR 2 TAHUN 2022 TENTA"
+        }
+      ],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 7 Tahun 2021 tentang Harmonisasi Peraturan Perpajakan",
+      "uri": "akn/id/act/uu/2021/7"
+    },
     "akn/id/act/uu/2023/17": {
       "amended_by": [],
       "repealed_by": null,
       "status": "berlaku",
       "title": "Undang-Undang Nomor 17 Tahun 2023 tentang Kesehatan",
       "uri": "akn/id/act/uu/2023/17"
+    },
+    "akn/id/act/uu/2023/4": {
+      "amended_by": [],
+      "repealed_by": null,
+      "status": "berlaku",
+      "title": "Undang-Undang Nomor 4 Tahun 2023 tentang Undang-Undang Nomor 4 Tahun 2023",
+      "uri": "akn/id/act/uu/2023/4"
     },
     "akn/id/act/uu/2023/6": {
       "amended_by": [
@@ -281,6 +574,9 @@
     }
   },
   "fixture_citations": {
+    "surat-agraria-reforma-tanah-adat.txt": [
+      "UU 5/1960"
+    ],
     "surat-bekasi-kereta-taksi.txt": [
       "UU 22/2009",
       "Permen 22/2009",
@@ -288,6 +584,18 @@
       "Perpres 55/2019",
       "UU 33/1964",
       "UU 34/1964"
+    ],
+    "surat-bencana-anak-bantuan-sosial.txt": [
+      "UU 24/2007",
+      "UU 11/2009",
+      "UU 35/2014",
+      "UU 23/2004"
+    ],
+    "surat-bumn-konsumen-standardisasi.txt": [
+      "UU 8/1999",
+      "UU 19/2003",
+      "UU 7/2014",
+      "UU 20/2014"
     ],
     "surat-buruh-outsourcing.txt": [
       "UU 13/2003",
@@ -298,12 +606,25 @@
       "Perpres 16/2018",
       "Perpres 12/2021"
     ],
+    "surat-diplomasi-wni-gaza.txt": [
+      "UUD 1945",
+      "UU 37/1999",
+      "UU 24/2000"
+    ],
     "surat-gaji-tunjangan-dosen.txt": [
       "Permen 52/2025",
       "Perpres 19/2025",
       "UU 14/2005",
       "PP 37/2009",
       "PP 41/2009"
+    ],
+    "surat-imigrasi-ham-pengungsi.txt": [
+      "UU 6/2011",
+      "UU 39/1999"
+    ],
+    "surat-ketahanan-pangan-irigasi-gabah.txt": [
+      "UU 18/2012",
+      "UU 41/2009"
     ],
     "surat-mbg-keracunan-grobogan.txt": [
       "Perpres 83/2024",
@@ -314,13 +635,48 @@
       "Perpres 12/2021",
       "UU 8/1999"
     ],
+    "surat-penegakan-hukum-korupsi-daerah.txt": [
+      "UU 8/1981",
+      "UU 31/1999",
+      "UU 20/2001",
+      "UU 30/2002",
+      "UU 19/2019"
+    ],
+    "surat-perbankan-pajak-umkm.txt": [
+      "UU 4/2023",
+      "UU 21/2011",
+      "UU 7/2021",
+      "UU 23/1999"
+    ],
     "surat-ppds-internsip-dokter.txt": [
       "UU 17/2023",
       "PP 28/2024",
       "Permenkes 7/2022",
       "Permen 7/2022",
       "UU 20/2013"
+    ],
+    "surat-transisi-energi-nikel-lingkungan.txt": [
+      "UU 30/2007",
+      "UU 3/2020",
+      "UU 32/2009"
+    ],
+    "surat-umkm-standardisasi-produk.txt": [
+      "UU 20/2008",
+      "UU 20/2014"
     ]
   },
-  "schema_version": 1
+  "schema_version": 1,
+  "trusted_recent": {
+    "entries": {
+      "Perpres 8/2026": {
+        "checked_on": "2026-05-04",
+        "expires_on": "2026-06-30",
+        "frbr_uri": "akn/id/act/perpres/2026/8",
+        "status": "berlaku",
+        "title": "Peraturan Presiden Nomor 8 Tahun 2026 tentang Rencana Aksi Nasional Pencegahan dan Penanggulangan Ekstremisme Berbasis Kekerasan yang Mengarah pada Terorisme Tahun 2026-2029"
+      }
+    },
+    "problems": [],
+    "warnings": []
+  }
 }

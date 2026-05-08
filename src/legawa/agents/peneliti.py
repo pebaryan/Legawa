@@ -108,6 +108,59 @@ _CANONICAL_PROBES: list[tuple[tuple[str, ...], str]] = [
      "akn/id/act/uu/1964/33"),  # UU Dana Pertanggungan Wajib Kecelakaan Penumpang
     (("kecelakaan lalu lintas", "asuransi korban kecelakaan", "jasa raharja"),
      "akn/id/act/uu/1964/34"),  # UU Dana Pertanggungan Wajib Kecelakaan Lalu Lintas Jalan
+    # Hukum acara & KPK kelembagaan (Komisi III)
+    (("kuhap", "hukum acara pidana", "penyidikan", "penyelidikan", "praperadilan"),
+     "akn/id/act/uu/1981/8"),  # KUHAP
+    (("kpk", "komisi pemberantasan korupsi"),
+     "akn/id/act/uu/2002/30"),  # UU pembentukan KPK
+    (("kpk", "komisi pemberantasan korupsi", "dewan pengawas kpk"),
+     "akn/id/act/uu/2019/19"),  # UU Perubahan Kedua KPK
+    # Sosial, kebencanaan, perlindungan anak & perempuan (Komisi VIII)
+    (("bencana", "kebencanaan", "bnpb", "bpbd", "tanggap darurat"),
+     "akn/id/act/uu/2007/24"),  # UU Penanggulangan Bencana
+    (("perlindungan anak", "kekerasan terhadap anak", "hak anak"),
+     "akn/id/act/uu/2014/35"),  # UU Perubahan Perlindungan Anak
+    (("kdrt", "kekerasan dalam rumah tangga", "pkdrt"),
+     "akn/id/act/uu/2004/23"),  # UU PKDRT
+    (("kesejahteraan sosial", "bantuan sosial", "pmks"),
+     "akn/id/act/uu/2009/11"),  # UU Kesejahteraan Sosial
+    # Diplomasi & perjanjian internasional (Komisi I)
+    (("hubungan luar negeri", "diplomasi", "wni di luar negeri", "perlindungan wni"),
+     "akn/id/act/uu/1999/37"),  # UU Hubungan Luar Negeri
+    (("perjanjian internasional", "traktat", "ratifikasi"),
+     "akn/id/act/uu/2000/24"),  # UU Perjanjian Internasional
+    # Pertanian, ketahanan pangan, lahan (Komisi IV)
+    (("lahan pertanian", "alih fungsi lahan", "ketahanan pangan", "lp2b"),
+     "akn/id/act/uu/2009/41"),  # UU Perlindungan Lahan Pertanian Pangan Berkelanjutan
+    # BUMN, perdagangan, standardisasi (Komisi VI)
+    (("bumn", "badan usaha milik negara"),
+     "akn/id/act/uu/2003/19"),  # UU BUMN
+    (("perdagangan", "perdagangan dalam negeri", "perdagangan luar negeri"),
+     "akn/id/act/uu/2014/7"),  # UU Perdagangan
+    (("standardisasi", "sni", "penilaian kesesuaian"),
+     "akn/id/act/uu/2014/20"),  # UU Standardisasi & Penilaian Kesesuaian
+    # UMKM (Komisi VII)
+    (("umkm", "usaha mikro", "usaha kecil", "usaha menengah"),
+     "akn/id/act/uu/2008/20"),  # UU UMKM
+    # Keuangan & fiskal (Komisi XI)
+    (("p2sk", "sektor keuangan", "fintech", "pinjol", "pinjaman online"),
+     "akn/id/act/uu/2023/4"),  # UU P2SK
+    (("ojk", "otoritas jasa keuangan"),
+     "akn/id/act/uu/2011/21"),  # UU OJK
+    (("pajak", "perpajakan", "hpp", "harmonisasi peraturan perpajakan"),
+     "akn/id/act/uu/2021/7"),  # UU HPP
+    # Energi, lingkungan hidup, pertambangan (Komisi XII)
+    (("ketahanan energi", "kebijakan energi", "energi nasional", "transisi energi", "energi terbarukan"),
+     "akn/id/act/uu/2007/30"),  # UU Energi
+    (("lingkungan hidup", "pplh", "amdal", "izin lingkungan"),
+     "akn/id/act/uu/2009/32"),  # UU PPLH
+    (("minerba", "mineral batubara", "pertambangan mineral"),
+     "akn/id/act/uu/2020/3"),  # UU Perubahan Minerba
+    # HAM & keimigrasian (Komisi XIII)
+    (("ham", "hak asasi manusia", "komnas ham"),
+     "akn/id/act/uu/1999/39"),  # UU HAM
+    (("keimigrasian", "imigrasi", "paspor", "pengungsi"),
+     "akn/id/act/uu/2011/6"),  # UU Keimigrasian
 ]
 
 
