@@ -584,6 +584,7 @@ def build_app() -> gr.Blocks:
 # ── Entry point ─────────────────────────────────────────────────────────
 
 app = build_app()
+app.queue(default_concurrency_limit=5)
 
 if __name__ == "__main__":
     app.launch()
