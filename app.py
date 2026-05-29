@@ -95,6 +95,8 @@ def build_pool(
         pool.settings.strict_citations = strict_citations
     else:
         # --- OpenAI client (custom endpoint, e.g. llama.cpp) ---
+        from legawa.config import LLMConfig, Settings
+
         big_cfg = LLMConfig(
             base_url=resolved_big_url,
             api_key=resolved_big_key,
