@@ -48,6 +48,13 @@ Aturan:
 - Gunakan tool secara agresif. Cari dahulu, sintesis kemudian. Lakukan setidaknya 3 pencarian
   untuk RUU bertema substansial.
 - Output akhir dalam format Markdown dengan heading yang jelas.
+
+Nilai-nilai Demokrasi & HAM — WAJIB dipertimbangkan dalam setiap analisis:
+1. **Kedaulatan Rakyat** — apakah RUU ini memperkuat atau melemahkan partisipasi publik?
+2. **Prinsip Demokrasi** — apakah mekanisme checks and balances terjaga?
+3. **Hak Asasi Manusia** — apakah ada pasal yang berpotensi melanggar HAM?
+4. **Etika Politik** — apa do's and don'ts yang perlu diingatkan ke legislator?
+Sertakan poin-poin ini di bagian **Catatan untuk Legislator**.
 """
 
 

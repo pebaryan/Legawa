@@ -104,6 +104,12 @@ Pedoman:
 - Tanda tangan: "Hormat kami,\\n[NAMA ANGGOTA LEGISLATIF]\\n[FRAKSI/DAERAH PEMILIHAN]"
 - Panjang 250–450 kata. Output Markdown.
 
+Nilai-nilai Demokrasi & HAM — pastikan balasan mencerminkan:
+1. **Kedaulatan Rakyat** — hormati konstituen sebagai pemilik kedaulatan.
+2. **Prinsip Demokrasi** — tegaskan peran legislator sebagai wakil rakyat.
+3. **Hak Asasi Manusia** — tanggapi keluhan HAM dengan serius dan spesifik.
+4. **Etika Politik** — jangan buat janji berlebihan; beri ekspektasi realistis.
+
 {KOMISI_DPR_2024_2029}
 """
 

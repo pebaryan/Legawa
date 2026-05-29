@@ -22,6 +22,7 @@ import gradio as gr
 from legawa.agents import analis_ruu, peneliti, penyusun, surat
 from legawa.tools.cache import CachingPasalClient
 from legawa.tools.pasal import PasalClient
+from legawa.tools.ethics import ethics_verify
 
 # ── Default HF Inference API config (zero-config demo) ──────────────────
 # Uses huggingface_hub's InferenceClient (works reliably on HF Spaces).
@@ -166,8 +167,10 @@ def agent_analyze(
     try:
         progress(0.3, desc="Menganalisis RUU...")
         result = analis_ruu.analyze(pool, pasal, source)
+        progress(0.8, desc="Verifikasi etika & HAM...")
+        output = ethics_verify(result.output, pool.small)
         progress(1.0, desc="Selesai!")
-        return result.output
+        return output
     except Exception as e:
         return f"**Error:** {e}"
     finally:
@@ -195,6 +198,8 @@ def agent_research(
         progress(0.2, desc="Ekspansi query...")
         progress(0.5, desc="Mencari peraturan...")
         output = peneliti.research(pool, pasal, topic)
+        progress(0.8, desc="Verifikasi etika & HAM...")
+        output = ethics_verify(output, pool.small)
         progress(1.0, desc="Selesai!")
         return output
     except Exception as e:
@@ -230,6 +235,8 @@ def agent_draft(
             with_research=with_research,
             extra_instructions=extra_instructions or None,
         )
+        progress(0.8, desc="Verifikasi etika & HAM...")
+        output = ethics_verify(output, pool.small)
         progress(1.0, desc="Selesai!")
         return output
     except Exception as e:
@@ -262,8 +269,11 @@ def agent_surat(
             pool, pasal, surat_text,
             verify_law=verify_law,
         )
+        output = surat.format_report(result)
+        progress(0.8, desc="Verifikasi etika & HAM...")
+        output = ethics_verify(output, pool.small)
         progress(1.0, desc="Selesai!")
-        return surat.format_report(result)
+        return output
     except Exception as e:
         return f"**Error:** {e}"
     finally:
@@ -368,7 +378,37 @@ def build_app() -> gr.Blocks:
         )
 
         with gr.Tabs():
-            # ─── Tab 1: Analisis RUU ──────────────────────────────────
+            # ─── Tab 1: Beranda — Welcome + Quick Guide ────────────────
+            with gr.TabItem("🏠 Beranda"):
+                gr.Markdown(
+                    "# 🏛️ Selamat Datang di Legawa\n\n"
+                    "**Asisten multi-agen untuk legislator Indonesia (DPR/DPRD).**\n\n"
+                    "Legawa membantu Anda menganalisis RUU, mencari peraturan terkait, "
+                    "menyusun naskah, dan membalas surat konstituen — semuanya dalam "
+                    "hitungan menit.\n\n"
+                    "---\n"
+                )
+                gr.Markdown(
+                    "### 🚀 Panduan Cepat\n\n"
+                    "1. **📄 Analisis RUU** — Tempel teks RUU atau upload PDF, klik Analisis\n"
+                    "2. **🔍 Riset Hukum** — Cari peraturan Indonesia berdasarkan topik\n"
+                    "3. **✍️ Draf Dokumen** — Buat pidato, naskah akademik, atau memo kebijakan\n"
+                    "4. **📬 Surat Konstituen** — Triase dan balas surat/email konstituen\n"
+                    "5. **⚙️ Pengaturan** — Atur koneksi LLM dan token API\n\n"
+                    "---\n"
+                )
+                gr.Markdown(
+                    "### ⚖️ Nilai-nilai Demokrasi & HAM\n\n"
+                    "Setiap output Legawa diperiksa terhadap 4 pilar:\n"
+                    "- **Kedaulatan Rakyat** — apakah keputusan berpihak pada rakyat?\n"
+                    "- **Prinsip Demokrasi** — apakah checks and balances terjaga?\n"
+                    "- **Hak Asasi Manusia** — apakah HAM dilindungi?\n"
+                    "- **Etika Politik** — apakah ada do's and don'ts untuk legislator?\n\n"
+                    "*Inisiatif ini terinspirasi dari masukan Taufik Basari, S.H., S.Hum., LL.M., "
+                    "anggota DPR RI 2019–2024.*\n"
+                )
+
+            # ─── Tab 2: Analisis RUU ──────────────────────────────────
             with gr.TabItem("📄 Analisis RUU"):
                 gr.Markdown(
                     "Upload atau tempel teks RUU untuk dianalisis pasal-per-pasal."
@@ -584,6 +624,32 @@ def build_app() -> gr.Blocks:
                         s_pasal_token, s_temp, s_max_tokens, s_strict,
                     ],
                     outputs=[big_url, big_key, small_url, small_key, pasal_token, health_out],
+                )
+
+            # ─── Tab 6: Kredit — Attribution ──────────────────────────
+            with gr.TabItem("👤 Kredit"):
+                gr.Markdown(
+                    "### 🗣️ Masukan dari Legislator\n\n"
+                    "Fitur **Nilai-nilai Demokrasi & HAM** dikembangkan berdasarkan "
+                    "masukan dari:\n\n"
+                    "**Taufik Basari, S.H., S.Hum., LL.M.**\n"
+                    "*Anggota Dewan Perwakilan Rakyat Republik Indonesia*\n"
+                    "*Masa jabatan: 1 Oktober 2019 – 30 September 2024*\n\n"
+                    "> *\"AI agent nya mesti dilatih utk kasih do's and don'ts, "
+                    "konsep kedaulatan rakyat, prinsip demokrasi dan HAM serta "
+                    "mengingatkan pentingnya political ethics di setiap jawaban "
+                    "yg diberikan. Jd kalau mau pake bahan dari AI, legislator "
+                    "tsb harus sertakan jg nilai2 itu.\"\n"
+                    "> — Taufik Basari, 29 Mei 2026*\n\n"
+                    "---\n"
+                    "[🔗 X/Twitter](https://x.com/taufikbasari) | "
+                    "[Wikipedia](https://id.wikipedia.org/wiki/Taufik_Basari)\n\n"
+                    "---\n"
+                    "### 🏛️ Legawa\n\n"
+                    "*Small models, big adventure* 🏕️\n\n"
+                    "Dibangun untuk [Build Small Hackathon](https://huggingface.co/build-small-hackathon) "
+                    "oleh [@pebaryan](https://x.com/pebaryan).\n\n"
+                    "Kode terbuka di [GitHub](https://github.com/pebaryan/Legawa).\n\n"
                 )
 
         gr.Markdown(

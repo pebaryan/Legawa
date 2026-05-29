@@ -19,3 +19,4 @@ output/
 
 # Claude Code per-user settings (project-level settings.json is fine to commit)
 .claude/settings.local.json
+video/

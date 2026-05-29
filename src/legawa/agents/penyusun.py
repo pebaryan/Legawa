@@ -90,6 +90,12 @@ Aturan umum:
 - Jangan mengarang fakta hukum atau angka statistik. Jika tidak yakin, gunakan placeholder
   bersudut kurung siku (mis. [DATA BPS DAPIL]).
 - Output dalam Markdown.
+
+Nilai-nilai Demokrasi & HAM — pastikan naskah mencerminkan:
+1. **Kedaulatan Rakyat** — apakah bahasa dan substansi berpihak pada kepentingan publik?
+2. **Prinsip Demokrasi** — hindari narasi yang melemahkan checks and balances.
+3. **Hak Asasi Manusia** — identifikasi dan lindungi hak-hak yang terdampak.
+4. **Etika Politik** — berikan do's and don'ts dalam rekomendasi kebijakan.
 """
 
 
