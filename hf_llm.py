@@ -25,6 +25,19 @@ class HFLLM:
         self.model_id = model_id
         self.client = InferenceClient(token=token or None)
 
+    def _extra_body(self, think: bool) -> dict[str, Any]:
+        """Disable reasoning tokens by default (Qwen-specific)."""
+        return {"chat_template_kwargs": {"enable_thinking": think}}
+
+    def _call(self, **kwargs: Any) -> Any:
+        """Common call method that passes extra_body."""
+        think = kwargs.pop("think", False)
+        return self.client.chat.completions.create(
+            model=self.model_id,
+            extra_body=self._extra_body(think),
+            **kwargs,
+        )
+
     def chat(
         self,
         messages: list[dict[str, Any]],
@@ -37,9 +50,9 @@ class HFLLM:
         kwargs: dict[str, Any] = {"max_tokens": max_tokens or 4096}
         if temperature is not None:
             kwargs["temperature"] = temperature
+        kwargs["think"] = think
 
-        resp = self.client.chat.completions.create(
-            model=self.model_id,
+        resp = self._call(
             messages=messages,
             **kwargs,
         )
@@ -61,9 +74,9 @@ class HFLLM:
         kwargs: dict[str, Any] = {"max_tokens": max_tokens or 4096}
         if temperature is not None:
             kwargs["temperature"] = temperature
+        kwargs["think"] = think
 
-        resp = self.client.chat.completions.create(
-            model=self.model_id,
+        resp = self._call(
             messages=messages,
             tools=list(tools),
             tool_choice="auto",

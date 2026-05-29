@@ -27,7 +27,7 @@ from legawa.tools.pasal import PasalClient
 # Uses huggingface_hub's InferenceClient (works reliably on HF Spaces).
 # Users can override via the Settings tab to use custom endpoints.
 HF_BIG_MODEL = os.environ.get("HF_BIG_MODEL", "Qwen/Qwen3.5-27B")
-HF_SMALL_MODEL = os.environ.get("HF_SMALL_MODEL", "Qwen/Qwen3-8B")
+HF_SMALL_MODEL = os.environ.get("HF_SMALL_MODEL", "Qwen/Qwen3.5-9B")
 HF_TOKEN = os.environ.get("HF_TOKEN", "")
 
 BUILD_INFO = "Build Small Hackathon 2026 · legawa v0.1"
@@ -522,7 +522,7 @@ def build_app() -> gr.Blocks:
                     )
                     s_small_model = gr.Textbox(
                         label="Model Name",
-                        value="Qwen3-8B",
+                        value="Qwen3.5-9B",
                     )
                 with gr.Group():
                     gr.Markdown("### 📜 pasal.id")
