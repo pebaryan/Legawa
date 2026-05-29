@@ -355,13 +355,15 @@ def build_app() -> gr.Blocks:
         )
 
         # ── Hidden state for connection config shared across tabs ──────
+        # NOTE: values start empty; build_pool falls back to env vars.
+        # This avoids embedding secrets in the page HTML/JS.
         big_url = gr.Textbox(label="BIG LLM Model", value=HF_BIG_MODEL, visible=False)
-        big_key = gr.Textbox(label="BIG LLM API Key", value=HF_TOKEN, visible=False)
+        big_key = gr.Textbox(label="BIG LLM API Key", value="", visible=False)
         small_url = gr.Textbox(label="SMALL LLM Model", value=HF_SMALL_MODEL, visible=False)
-        small_key = gr.Textbox(label="SMALL LLM API Key", value=HF_TOKEN, visible=False)
+        small_key = gr.Textbox(label="SMALL LLM API Key", value="", visible=False)
         pasal_token = gr.Textbox(
             label="pasal.id Token",
-            value=os.environ.get("PASAL_API_TOKEN", ""),
+            value="",
             visible=False,
         )
 
@@ -508,7 +510,8 @@ def build_app() -> gr.Blocks:
                     s_big_key = gr.Textbox(
                         label="API Key",
                         type="password",
-                        value=HF_TOKEN,
+                        value="",
+                        placeholder="Kosongkan untuk pakai HF_TOKEN dari environment",
                     )
                     s_big_model = gr.Textbox(
                         label="Model Name",
@@ -520,7 +523,8 @@ def build_app() -> gr.Blocks:
                     s_small_key = gr.Textbox(
                         label="API Key",
                         type="password",
-                        value=HF_TOKEN,
+                        value="",
+                        placeholder="Kosongkan untuk pakai HF_TOKEN dari environment",
                     )
                     s_small_model = gr.Textbox(
                         label="Model Name",
@@ -531,7 +535,8 @@ def build_app() -> gr.Blocks:
                     s_pasal_token = gr.Textbox(
                         label="API Token",
                         type="password",
-                        value=os.environ.get("PASAL_API_TOKEN", ""),
+                        value="",
+                        placeholder="Kosongkan untuk pakai PASAL_API_TOKEN dari environment",
                     )
                 with gr.Group():
                     gr.Markdown("### ⚙️ Lainnya")
