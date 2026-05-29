@@ -82,8 +82,15 @@ def _verify_output_citations(
 
 def load_ruu_text(source: str) -> str:
     """Load RUU content from a file path (txt/md/pdf) or treat as raw text."""
+    # If it contains newlines or is absurdly long, it's raw text, not a path.
+    if "\n" in source or len(source) > 400:
+        return source
     path = Path(source)
-    if not path.exists() or not path.is_file():
+    try:
+        exists = path.exists()
+    except OSError:
+        return source
+    if not exists or not path.is_file():
         return source
 
     if path.suffix.lower() == ".pdf":
