@@ -8,9 +8,27 @@ Endpoints (https://pasal.id/api/v1):
 
 from __future__ import annotations
 
-from typing import Any
+import threading
+import time
+from typing import Any, Callable
 
 import httpx
+
+# ── Global rate limiter (shared across all PasalClient instances) ─────────
+_LOCK = threading.Lock()
+_LAST_PASAL_REQUEST: float = 0.0
+_PASAL_MIN_DELAY: float = 1.5  # seconds between API calls (global)
+
+
+def _throttle() -> None:
+    """Block until the global per-instance delay has elapsed since last call."""
+    global _LAST_PASAL_REQUEST
+    with _LOCK:
+        elapsed = time.monotonic() - _LAST_PASAL_REQUEST
+        if elapsed < _PASAL_MIN_DELAY:
+            time.sleep(_PASAL_MIN_DELAY - elapsed)
+        _LAST_PASAL_REQUEST = time.monotonic()
+
 
 from ..config import Settings
 
@@ -34,9 +52,6 @@ class PasalClient:
             },
             timeout=timeout,
         )
-        # Rate limiter: minimum seconds between requests
-        self._min_delay: float = 0.5
-        self._last_request: float = 0.0
 
     def close(self) -> None:
         self._client.close()
@@ -55,21 +70,15 @@ class PasalClient:
         params: dict[str, Any] | None = None,
         max_retries: int = 3,
     ) -> dict[str, Any]:
-        """Send a request with rate limiting + retry on 429."""
-        import time
-
+        """Send a request with global rate limiting + retry on 429."""
         for attempt in range(max_retries):
-            # Enforce minimum delay between requests
-            elapsed = time.monotonic() - self._last_request
-            if elapsed < self._min_delay:
-                time.sleep(self._min_delay - elapsed)
+            _throttle()  # global delay shared across all instances
 
             r = self._client.request(method, path, params=params)
-            self._last_request = time.monotonic()
 
             if r.status_code == 429:
-                retry_after = float(r.headers.get("Retry-After", 1))
-                wait = retry_after * (attempt + 1)  # linear backoff
+                retry_after = float(r.headers.get("Retry-After", 2))
+                wait = retry_after * (attempt + 1)
                 time.sleep(wait)
                 continue
 
