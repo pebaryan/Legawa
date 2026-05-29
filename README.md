@@ -2,7 +2,7 @@
 title: Legawa
 emoji: 🏛️
 colorFrom: indigo
-colorTo: slate
+colorTo: gray
 sdk: gradio
 sdk_version: 6
 app_file: app.py
