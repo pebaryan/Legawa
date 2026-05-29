@@ -402,7 +402,6 @@ def build_app() -> gr.Blocks:
                     "Tonton video demo Legawa untuk melihat cara kerja setiap fitur:\n\n"
                     "▶️ **[Video Panduan Lengkap](https://www.youtube.com/watch?v=jgYXyij1P9Q)** "
                     "*— 51 detik, animasi penuh 5 fitur + arsitektur SMALL-BIG + etika*\n\n"
-                    "File video siap upload: `assets/guide/legawa_final_web.mp4` (1.6 MB, 720p30 with audio).\n"
                     "---\n"
                 )
                 gr.Markdown(
