@@ -501,8 +501,18 @@ def build_app() -> gr.Blocks:
             # ─── Tab 5: Pengaturan ──────────────────────────────────────
             with gr.TabItem("⚙️ Pengaturan"):
                 gr.Markdown(
-                    "Konfigurasi koneksi LLM dan pasal.id. "
-                    "Kosongkan untuk menggunakan default (HF Inference API)."
+                    "### Cara Mendapatkan Token\n\n"
+                    "Semua field bisa dikosongkan — pakai yang sudah ada sebagai env var.\n\n"
+                    "**🔑 HF Token** — [Dapatkan di sini](https://huggingface.co/settings/tokens)\n"
+                    "Buat *read-only* token (gratis). Digunakan untuk memanggil model lewat "
+                    "[HF Inference API](https://huggingface.co/docs/api-inference/index).\n\n"
+                    "**📜 pasal.id Token** — [Daftar di sini](https://pasal.id)\n"
+                    "Token API untuk database peraturan Indonesia (gratis). "
+                    "Bisa dikosongkan — analisis tetap jalan tanpa pencarian peraturan.\n\n"
+                    "**🔗 Custom LLM Endpoint** — URL + API Key untuk llama.cpp / vLLM / OpenAI-compatible.\n"
+                    "Isi URL di field Model ID / URL, API Key, dan Model Name. "
+                    "Kosongkan untuk pakai HF Inference API.\n"
+                    "---"
                 )
                 with gr.Group():
                     gr.Markdown("### 🧠 LLM BIG (sintesis, drafting)")
@@ -511,7 +521,7 @@ def build_app() -> gr.Blocks:
                         label="API Key",
                         type="password",
                         value="",
-                        placeholder="Kosongkan untuk pakai HF_TOKEN dari environment",
+                        placeholder="Kosongkan — pakai HF_TOKEN env var",
                     )
                     s_big_model = gr.Textbox(
                         label="Model Name",
@@ -524,7 +534,7 @@ def build_app() -> gr.Blocks:
                         label="API Key",
                         type="password",
                         value="",
-                        placeholder="Kosongkan untuk pakai HF_TOKEN dari environment",
+                        placeholder="Kosongkan — pakai HF_TOKEN env var",
                     )
                     s_small_model = gr.Textbox(
                         label="Model Name",
@@ -536,7 +546,7 @@ def build_app() -> gr.Blocks:
                         label="API Token",
                         type="password",
                         value="",
-                        placeholder="Kosongkan untuk pakai PASAL_API_TOKEN dari environment",
+                        placeholder="Kosongkan — cari peraturan tidak akan jalan",
                     )
                 with gr.Group():
                     gr.Markdown("### ⚙️ Lainnya")
