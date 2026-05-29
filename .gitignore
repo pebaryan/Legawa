@@ -20,3 +20,6 @@ output/
 # Claude Code per-user settings (project-level settings.json is fine to commit)
 .claude/settings.local.json
 video/
+assets/guide/*.png
+assets/guide/frames_labeled/
+assets/guide/*.mp4

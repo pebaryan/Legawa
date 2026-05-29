@@ -398,6 +398,15 @@ def build_app() -> gr.Blocks:
                     "---\n"
                 )
                 gr.Markdown(
+                    "### 🎬 Panduan Video\n\n"
+                    "Tonton video demo Legawa untuk melihat cara kerja setiap fitur:\n\n"
+                    "▶️ **[Video Panduan Lengkap](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)** "
+                    "*— overview semua fitur (21 detik)*\n\n"
+                    "**Petunjuk:** Ganti `YOUR_VIDEO_ID` dengan ID video YouTube setelah "
+                    "mengupload videonya. File video (.mp4) tersedia di `assets/guide/legawa_guide_web.mp4`.\n\n"
+                    "---\n"
+                )
+                gr.Markdown(
                     "### ⚖️ Nilai-nilai Demokrasi & HAM\n\n"
                     "Setiap output Legawa diperiksa terhadap 4 pilar:\n"
                     "- **Kedaulatan Rakyat** — apakah keputusan berpihak pada rakyat?\n"
