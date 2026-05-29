@@ -30,11 +30,11 @@ from legawa.tools.pasal import PasalClient
 # Users can override via the Settings tab or by setting env vars on the Space.
 HF_BIG_URL = os.environ.get(
     "HF_BIG_URL",
-    "https://api-inference.huggingface.co/models/Qwen/Qwen3-30B-A3B/v1",
+    "https://api-inference.huggingface.co/models/Qwen/Qwen3.6-27B/v1",
 )
 HF_SMALL_URL = os.environ.get(
     "HF_SMALL_URL",
-    "https://api-inference.huggingface.co/models/Qwen/Qwen3-8B/v1",
+    "https://api-inference.huggingface.co/models/Qwen/Qwen3.6-35B-A3B/v1",
 )
 # HF Inference API doesn't require a token for free-tier browsing, but
 # setting HF_TOKEN as a Space secret bumps your rate limit significantly.
@@ -466,7 +466,7 @@ def build_app() -> gr.Blocks:
                     )
                     s_big_model = gr.Textbox(
                         label="Model Name",
-                        value="Qwen3-30B-A3B",
+                        value="Qwen3.6-27B",
                     )
                 with gr.Group():
                     gr.Markdown("### 🧠 LLM SMALL (klasifikasi, ekstraksi)")
@@ -478,7 +478,7 @@ def build_app() -> gr.Blocks:
                     )
                     s_small_model = gr.Textbox(
                         label="Model Name",
-                        value="Qwen3-8B",
+                        value="Qwen3.6-35B-A3B",
                     )
                 with gr.Group():
                     gr.Markdown("### 📜 pasal.id")
