@@ -20,8 +20,8 @@ if _src.exists() and str(_src) not in sys.path:
 import gradio as gr
 
 from legawa.agents import analis_ruu, peneliti, penyusun, surat
-from legawa.config import LLMConfig, Settings, load_settings
-from legawa.llm import LLM, LLMPool
+from legawa.config import LLMConfig, Settings
+from legawa.llm import LLMPool
 from legawa.tools.cache import CachingPasalClient
 from legawa.tools.pasal import PasalClient
 
@@ -59,36 +59,45 @@ def build_pool(
     """Build an LLMPool + CachingPasalClient from user-provided overrides.
 
     Falls through to env vars / HF defaults for anything left blank.
+    Does NOT call load_settings() — which requires env vars set on HF Space.
     """
-    settings = load_settings()
+    from datetime import date
 
-    # Pasal token: prefer user input, then env
-    pasal_token = pasal_token or settings.pasal_token
+    # Resolve Pasal token: user input → env var → empty
+    pasal_token = pasal_token or os.environ.get("PASAL_API_TOKEN", "")
 
-    # Rebuild settings with overrides
+    # Resolve BIG endpoint: user input → env var → HF default
+    resolved_big_url = big_url or os.environ.get("LLM_BIG_URL", HF_BIG_URL)
+    resolved_big_key = big_key or os.environ.get("LLM_BIG_API_KEY", HF_TOKEN)
+    resolved_big_model = big_model or os.environ.get("LLM_BIG_MODEL", "qwen3")
+
+    # Resolve SMALL endpoint: user input → env var → HF default
+    resolved_small_url = small_url or os.environ.get("LLM_SMALL_URL", HF_SMALL_URL)
+    resolved_small_key = small_key or os.environ.get("LLM_SMALL_API_KEY", HF_TOKEN)
+    resolved_small_model = small_model or os.environ.get("LLM_SMALL_MODEL", "qwen3")
+
     big_cfg = LLMConfig(
-        base_url=big_url or getattr(settings.big, "base_url", HF_BIG_URL),
-        api_key=big_key or HF_TOKEN or settings.big.api_key,
-        model=big_model or settings.big.model,
+        base_url=resolved_big_url,
+        api_key=resolved_big_key,
+        model=resolved_big_model,
         temperature=temperature,
         max_tokens=max_tokens,
     )
     small_cfg = LLMConfig(
-        base_url=small_url or getattr(settings.small, "base_url", HF_SMALL_URL),
-        api_key=small_key or HF_TOKEN or settings.small.api_key,
-        model=small_model or settings.small.model,
+        base_url=resolved_small_url,
+        api_key=resolved_small_key,
+        model=resolved_small_model,
         temperature=temperature,
         max_tokens=max_tokens,
     )
 
-    # Patch the settings dataclass
     override_settings = Settings(
-        pasal_token=pasal_token or "",
-        pasal_base_url=settings.pasal_base_url,
+        pasal_token=pasal_token,
+        pasal_base_url=os.environ.get("PASAL_BASE_URL", "https://pasal.id/api/v1"),
         big=big_cfg,
         small=small_cfg,
-        run_date=settings.run_date,
-        corpus_watermark=settings.corpus_watermark,
+        run_date=os.environ.get("LEGAWA_RUN_DATE", date.today().isoformat()),
+        corpus_watermark=os.environ.get("PASAL_CORPUS_WATERMARK", ""),
         strict_citations=strict_citations,
     )
 
