@@ -33,9 +33,9 @@ HF_TOKEN = os.environ.get("HF_TOKEN", "")
 BUILD_INFO = "Build Small Hackathon 2026 · legawa v0.1"
 
 
-def _is_hf_default(url: str) -> bool:
-    """Check if a URL is a default HF Inference API endpoint."""
-    return "huggingface.co/models/" in url
+def _is_hf_default(url_or_model: str) -> bool:
+    """True if this is a model ID (no ://) or a default HF Inference API endpoint."""
+    return "://" not in url_or_model or "huggingface.co/models/" in url_or_model
 
 
 def _model_id_from_url(url: str) -> str:
