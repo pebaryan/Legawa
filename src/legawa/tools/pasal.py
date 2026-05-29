@@ -34,6 +34,9 @@ class PasalClient:
             },
             timeout=timeout,
         )
+        # Rate limiter: minimum seconds between requests
+        self._min_delay: float = 0.5
+        self._last_request: float = 0.0
 
     def close(self) -> None:
         self._client.close()
@@ -44,6 +47,38 @@ class PasalClient:
     def __exit__(self, *_: Any) -> None:
         self.close()
 
+    def _request(
+        self,
+        method: str,
+        path: str,
+        *,
+        params: dict[str, Any] | None = None,
+        max_retries: int = 3,
+    ) -> dict[str, Any]:
+        """Send a request with rate limiting + retry on 429."""
+        import time
+
+        for attempt in range(max_retries):
+            # Enforce minimum delay between requests
+            elapsed = time.monotonic() - self._last_request
+            if elapsed < self._min_delay:
+                time.sleep(self._min_delay - elapsed)
+
+            r = self._client.request(method, path, params=params)
+            self._last_request = time.monotonic()
+
+            if r.status_code == 429:
+                retry_after = float(r.headers.get("Retry-After", 1))
+                wait = retry_after * (attempt + 1)  # linear backoff
+                time.sleep(wait)
+                continue
+
+            r.raise_for_status()
+            return r.json()
+
+        # All retries exhausted
+        raise RuntimeError(f"pasal.id rate limit exceeded after {max_retries} retries")
+
     def search(
         self,
         q: str,
@@ -53,9 +88,7 @@ class PasalClient:
         params: dict[str, Any] = {"q": q, "limit": max(1, min(20, limit))}
         if type:
             params["type"] = type
-        r = self._client.get("/search", params=params)
-        r.raise_for_status()
-        return r.json()
+        return self._request("GET", "/search", params=params)
 
     def list_laws(
         self,
@@ -75,15 +108,11 @@ class PasalClient:
             params["year"] = year
         if status:
             params["status"] = status
-        r = self._client.get("/laws", params=params)
-        r.raise_for_status()
-        return r.json()
+        return self._request("GET", "/laws", params=params)
 
     def get_law(self, frbr_uri: str) -> dict[str, Any]:
         # frbr_uri example: akn/id/act/uu/2003/13
-        r = self._client.get(f"/laws/{frbr_uri.lstrip('/')}")
-        r.raise_for_status()
-        return r.json()
+        return self._request("GET", f"/laws/{frbr_uri.lstrip('/')}")
 
 
 # OpenAI-compatible tool schemas exposed to agents.
