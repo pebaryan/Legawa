@@ -20,27 +20,30 @@ if _src.exists() and str(_src) not in sys.path:
 import gradio as gr
 
 from legawa.agents import analis_ruu, peneliti, penyusun, surat
-from legawa.config import LLMConfig, Settings
-from legawa.llm import LLMPool
 from legawa.tools.cache import CachingPasalClient
 from legawa.tools.pasal import PasalClient
 
 # ── Default HF Inference API config (zero-config demo) ──────────────────
-# These map to HF's free Inference API, which is OpenAI-compatible.
-# Users can override via the Settings tab or by setting env vars on the Space.
-HF_BIG_URL = os.environ.get(
-    "HF_BIG_URL",
-    "https://api-inference.huggingface.co/models/Qwen/Qwen3-32B/v1",
-)
-HF_SMALL_URL = os.environ.get(
-    "HF_SMALL_URL",
-    "https://api-inference.huggingface.co/models/Qwen/Qwen3-8B/v1",
-)
-# HF Inference API doesn't require a token for free-tier browsing, but
-# setting HF_TOKEN as a Space secret bumps your rate limit significantly.
+# Uses huggingface_hub's InferenceClient (works reliably on HF Spaces).
+# Users can override via the Settings tab to use custom endpoints.
+HF_BIG_MODEL = os.environ.get("HF_BIG_MODEL", "Qwen/Qwen3.5-27B")
+HF_SMALL_MODEL = os.environ.get("HF_SMALL_MODEL", "Qwen/Qwen3-8B")
 HF_TOKEN = os.environ.get("HF_TOKEN", "")
 
 BUILD_INFO = "Build Small Hackathon 2026 · legawa v0.1"
+
+
+def _is_hf_default(url: str) -> bool:
+    """Check if a URL is a default HF Inference API endpoint."""
+    return "huggingface.co/models/" in url
+
+
+def _model_id_from_url(url: str) -> str:
+    """Extract model ID from HF Inference API URL."""
+    # URL format: https://api-inference.huggingface.co/models/{model_id}/v1
+    if "/models/" in url:
+        return url.split("/models/")[1].split("/v1")[0]
+    return url
 
 
 # ── Bootstrap: create settings + pool given user overrides ──────────────
@@ -55,11 +58,12 @@ def build_pool(
     temperature: float = 0.3,
     max_tokens: int = 4096,
     strict_citations: bool = True,
-) -> tuple[LLMPool, CachingPasalClient]:
-    """Build an LLMPool + CachingPasalClient from user-provided overrides.
+) -> tuple:
+    """Build an LLM pool + CachingPasalClient from user-provided overrides.
 
+    Uses HFLLMPool (InferenceClient) for HF endpoints,
+    LLMPool (OpenAI client) for custom endpoints.
     Falls through to env vars / HF defaults for anything left blank.
-    Does NOT call load_settings() — which requires env vars set on HF Space.
     """
     from datetime import date
 
@@ -67,43 +71,74 @@ def build_pool(
     pasal_token = pasal_token or os.environ.get("PASAL_API_TOKEN", "")
 
     # Resolve BIG endpoint: user input → env var → HF default
-    resolved_big_url = big_url or os.environ.get("LLM_BIG_URL", HF_BIG_URL)
+    resolved_big_url = big_url or os.environ.get("LLM_BIG_URL", "")
     resolved_big_key = big_key or os.environ.get("LLM_BIG_API_KEY", HF_TOKEN)
-    resolved_big_model = big_model or os.environ.get("LLM_BIG_MODEL", "qwen3")
+    resolved_big_model = big_model or os.environ.get("LLM_BIG_MODEL", HF_BIG_MODEL)
 
     # Resolve SMALL endpoint: user input → env var → HF default
-    resolved_small_url = small_url or os.environ.get("LLM_SMALL_URL", HF_SMALL_URL)
+    resolved_small_url = small_url or os.environ.get("LLM_SMALL_URL", "")
     resolved_small_key = small_key or os.environ.get("LLM_SMALL_API_KEY", HF_TOKEN)
-    resolved_small_model = small_model or os.environ.get("LLM_SMALL_MODEL", "qwen3")
+    resolved_small_model = small_model or os.environ.get("LLM_SMALL_MODEL", HF_SMALL_MODEL)
 
-    big_cfg = LLMConfig(
-        base_url=resolved_big_url,
-        api_key=resolved_big_key,
-        model=resolved_big_model,
-        temperature=temperature,
-        max_tokens=max_tokens,
-    )
-    small_cfg = LLMConfig(
-        base_url=resolved_small_url,
-        api_key=resolved_small_key,
-        model=resolved_small_model,
-        temperature=temperature,
-        max_tokens=max_tokens,
-    )
+    run_date = os.environ.get("LEGAWA_RUN_DATE", date.today().isoformat())
 
-    override_settings = Settings(
+    # Decide which backend to use
+    if not resolved_big_url or _is_hf_default(resolved_big_url):
+        # --- HF Inference Client (default, works reliably) ---
+        from hf_llm import HFLLMPool
+
+        big_mid = _model_id_from_url(resolved_big_url) if resolved_big_url else resolved_big_model
+        small_mid = _model_id_from_url(resolved_small_url) if resolved_small_url else resolved_small_model
+        pool = HFLLMPool(big_mid, small_mid, token=resolved_big_key)
+        pool.settings.run_date = run_date
+        pool.settings.corpus_watermark = os.environ.get("PASAL_CORPUS_WATERMARK", "")
+        pool.settings.strict_citations = strict_citations
+    else:
+        # --- OpenAI client (custom endpoint, e.g. llama.cpp) ---
+        big_cfg = LLMConfig(
+            base_url=resolved_big_url,
+            api_key=resolved_big_key,
+            model=resolved_big_model,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+        small_cfg = LLMConfig(
+            base_url=resolved_small_url,
+            api_key=resolved_small_key,
+            model=resolved_small_model,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+        override_settings = Settings(
+            pasal_token=pasal_token,
+            pasal_base_url=os.environ.get("PASAL_BASE_URL", "https://pasal.id/api/v1"),
+            big=big_cfg,
+            small=small_cfg,
+            run_date=run_date,
+            corpus_watermark=os.environ.get("PASAL_CORPUS_WATERMARK", ""),
+            strict_citations=strict_citations,
+        )
+        from legawa.llm import LLMPool
+        pool = LLMPool(override_settings)
+
+    raw = PasalClient(
+        _pasal_settings(pasal_token)
+    )
+    pasal = CachingPasalClient(raw)
+    return pool, pasal
+
+
+def _pasal_settings(pasal_token: str) -> Settings:
+    """Build a minimal Settings just for PasalClient."""
+    from legawa.config import LLMConfig
+    dummy = LLMConfig(base_url="", api_key="", model="", temperature=0.3, max_tokens=4096)
+    return Settings(
         pasal_token=pasal_token,
         pasal_base_url=os.environ.get("PASAL_BASE_URL", "https://pasal.id/api/v1"),
-        big=big_cfg,
-        small=small_cfg,
-        run_date=os.environ.get("LEGAWA_RUN_DATE", date.today().isoformat()),
-        corpus_watermark=os.environ.get("PASAL_CORPUS_WATERMARK", ""),
-        strict_citations=strict_citations,
+        big=dummy, small=dummy,
+        run_date="", corpus_watermark="", strict_citations=False,
     )
 
-    pool = LLMPool(override_settings)
-    raw = PasalClient(override_settings)
-    pasal = CachingPasalClient(raw)
     return pool, pasal
 
 
@@ -318,9 +353,9 @@ def build_app() -> gr.Blocks:
         )
 
         # ── Hidden state for connection config shared across tabs ──────
-        big_url = gr.Textbox(label="BIG LLM URL", value=HF_BIG_URL, visible=False)
+        big_url = gr.Textbox(label="BIG LLM Model", value=HF_BIG_MODEL, visible=False)
         big_key = gr.Textbox(label="BIG LLM API Key", value=HF_TOKEN, visible=False)
-        small_url = gr.Textbox(label="SMALL LLM URL", value=HF_SMALL_URL, visible=False)
+        small_url = gr.Textbox(label="SMALL LLM Model", value=HF_SMALL_MODEL, visible=False)
         small_key = gr.Textbox(label="SMALL LLM API Key", value=HF_TOKEN, visible=False)
         pasal_token = gr.Textbox(
             label="pasal.id Token",
@@ -467,7 +502,7 @@ def build_app() -> gr.Blocks:
                 )
                 with gr.Group():
                     gr.Markdown("### 🧠 LLM BIG (sintesis, drafting)")
-                    s_big_url = gr.Textbox(label="URL", value=HF_BIG_URL)
+                    s_big_url = gr.Textbox(label="Model ID / URL", value=HF_BIG_MODEL)
                     s_big_key = gr.Textbox(
                         label="API Key",
                         type="password",
@@ -479,7 +514,7 @@ def build_app() -> gr.Blocks:
                     )
                 with gr.Group():
                     gr.Markdown("### 🧠 LLM SMALL (klasifikasi, ekstraksi)")
-                    s_small_url = gr.Textbox(label="URL", value=HF_SMALL_URL)
+                    s_small_url = gr.Textbox(label="Model ID / URL", value=HF_SMALL_MODEL)
                     s_small_key = gr.Textbox(
                         label="API Key",
                         type="password",
