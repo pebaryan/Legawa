@@ -132,7 +132,7 @@ def build_pool(
 
 def _pasal_settings(pasal_token: str) -> Settings:
     """Build a minimal Settings just for PasalClient."""
-    from legawa.config import LLMConfig
+    from legawa.config import LLMConfig, Settings
     dummy = LLMConfig(base_url="", api_key="", model="", temperature=0.3, max_tokens=4096)
     return Settings(
         pasal_token=pasal_token,
