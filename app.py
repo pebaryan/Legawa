@@ -27,11 +27,40 @@ from legawa.tools.ethics import ethics_verify
 # ── Default HF Inference API config (zero-config demo) ──────────────────
 # Uses huggingface_hub's InferenceClient (works reliably on HF Spaces).
 # Users can override via the Settings tab to use custom endpoints.
-HF_BIG_MODEL = os.environ.get("HF_BIG_MODEL", "Qwen/Qwen3.5-27B")
+HF_BIG_MODEL = os.environ.get("HF_BIG_MODEL", "Qwen/Qwen3.5-9B")
 HF_SMALL_MODEL = os.environ.get("HF_SMALL_MODEL", "Qwen/Qwen3.5-9B")
 HF_TOKEN = os.environ.get("HF_TOKEN", "")
 
 BUILD_INFO = "Build Small Hackathon 2026 · legawa v0.1"
+
+RUU_EXAMPLE = """RUU Perlindungan Data Pribadi Kesehatan
+Pasal 1
+Data kesehatan pasien wajib dilindungi oleh fasilitas pelayanan kesehatan dan penyelenggara sistem elektronik kesehatan.
+
+Pasal 2
+Setiap rumah sakit wajib meminta persetujuan tertulis sebelum membagikan data pasien kepada pihak ketiga.
+
+Pasal 3
+Pemerintah daerah wajib menyediakan kanal pengaduan bagi pasien yang data kesehatannya disalahgunakan."""
+
+SURAT_EXAMPLE = """Yth. Anggota DPRD,
+
+Saya warga Kelurahan Sukamaju. Sudah tiga bulan saluran drainase di depan rumah kami tersumbat dan menyebabkan banjir setiap hujan. Kami sudah melapor ke RT dan kelurahan, tetapi belum ada tindak lanjut.
+
+Mohon bantuan agar dinas terkait segera turun mengecek dan membersihkan saluran tersebut.
+
+Hormat kami,
+Warga RW 04"""
+
+
+def _llm_label(llm: object) -> str:
+    """Return the model label for both HFLLM and OpenAI-compatible LLM objects."""
+    if hasattr(llm, "model_id"):
+        return str(getattr(llm, "model_id"))
+    cfg = getattr(llm, "cfg", None)
+    if cfg is not None and hasattr(cfg, "model"):
+        return str(cfg.model)
+    return "model"
 
 
 def _is_hf_default(url_or_model: str) -> bool:
@@ -301,7 +330,7 @@ def agent_health(
                 [{"role": "user", "content": "Jawab dengan satu kata: OK"}],
                 max_tokens=10,
             )
-            lines.append(f"✅ **BIG LLM** ({pool.big.cfg.model[:30]}...): {resp.strip()}")
+            lines.append(f"✅ **BIG LLM** ({_llm_label(pool.big)[:30]}...): {resp.strip()}")
         except Exception as e:
             lines.append(f"❌ **BIG LLM**: {e}")
 
@@ -311,7 +340,7 @@ def agent_health(
                 [{"role": "user", "content": "Jawab dengan satu kata: OK"}],
                 max_tokens=10,
             )
-            lines.append(f"✅ **SMALL LLM** ({pool.small.cfg.model[:30]}...): {resp.strip()}")
+            lines.append(f"✅ **SMALL LLM** ({_llm_label(pool.small)[:30]}...): {resp.strip()}")
         except Exception as e:
             lines.append(f"❌ **SMALL LLM**: {e}")
 
@@ -331,10 +360,10 @@ def agent_health(
 
 # ── File upload helper for analis_ruu ───────────────────────────────────
 
-def handle_file_upload(file: tempfile.NamedTemporaryFile | None) -> str:
+def handle_file_upload(file: object | None) -> str:
     if file is None:
         return ""
-    path = Path(file.name)
+    path = Path(getattr(file, "name"))
     if path.suffix.lower() == ".pdf":
         from pypdf import PdfReader
         reader = PdfReader(str(path))
@@ -345,8 +374,23 @@ def handle_file_upload(file: tempfile.NamedTemporaryFile | None) -> str:
 # ── Build Gradio UI ─────────────────────────────────────────────────────
 
 CSS = """
-/* Space is compact and readable */
-.container { max-width: 960px; margin: 0 auto; }
+/* Space is compact, judge-friendly, and readable */
+.gradio-container { max-width: 1100px !important; margin: 0 auto !important; }
+.legawa-hero {
+  padding: 1.25rem 1.4rem;
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgba(79,70,229,.16), rgba(16,185,129,.12));
+  border: 1px solid rgba(99,102,241,.25);
+  margin-bottom: 1rem;
+}
+.legawa-hero h1 { margin-top: 0; }
+.legawa-card {
+  padding: .85rem 1rem;
+  border-radius: 14px;
+  border: 1px solid rgba(148,163,184,.25);
+  background: rgba(148,163,184,.08);
+}
+.legawa-card strong { color: #4f46e5; }
 footer { display: none !important; }
 .dark table { color: #e0e0e0; }
 """
@@ -358,10 +402,14 @@ def build_app() -> gr.Blocks:
         title="Legawa — Asisten Legislatif",
         theme=gr.themes.Soft(),
     ) as app:
-        gr.Markdown(
-            f"# 🏛️ Legawa\n"
-            f"Asisten multi-agen untuk legislator Indonesia (DPR/DPRD)\n"
-            f"*{BUILD_INFO}*"
+        gr.HTML(
+            f"""
+            <div class="legawa-hero">
+              <h1>🏛️ Legawa</h1>
+              <p><strong>Backyard AI untuk staf DPR/DPRD:</strong> triase surat warga, riset aturan, analisis RUU, dan draf naskah kebijakan dalam menit — bukan hari.</p>
+              <p><em>{BUILD_INFO} · 2× Qwen3.5-9B = 18B params total, under the 32B trail limit.</em></p>
+            </div>
+            """
         )
 
         # ── Hidden state for connection config shared across tabs ──────
@@ -381,20 +429,33 @@ def build_app() -> gr.Blocks:
             # ─── Tab 1: Beranda — Welcome + Quick Guide ────────────────
             with gr.TabItem("🏠 Beranda"):
                 gr.Markdown(
-                    "# 🏛️ Selamat Datang di Legawa\n\n"
-                    "**Asisten multi-agen untuk legislator Indonesia (DPR/DPRD).**\n\n"
-                    "Legawa membantu Anda menganalisis RUU, mencari peraturan terkait, "
-                    "menyusun naskah, dan membalas surat konstituen — semuanya dalam "
-                    "hitungan menit.\n\n"
-                    "---\n"
+                    "## Dibangun untuk masalah nyata: kantor legislator yang kebanjiran dokumen\n\n"
+                    "Staf ahli DPR/DPRD sering harus membaca RUU panjang, mengecek dasar hukum, "
+                    "menyusun memo, dan membalas surat warga dengan waktu terbatas. Legawa mengubah "
+                    "pekerjaan awal yang repetitif menjadi draft terstruktur yang tetap bisa diverifikasi manusia.\n\n"
+                    "**Masukan produk:** fitur etika, demokrasi, dan HAM dibuat dari masukan Taufik Basari, "
+                    "anggota DPR RI 2019–2024. Ini menargetkan *Backyard AI*: masalah lokal/spesifik "
+                    "untuk orang yang benar-benar bekerja dengan dokumen legislatif.\n\n"
                 )
+                with gr.Row():
+                    gr.HTML(
+                        "<div class='legawa-card'><strong>📬 Surat warga → triase</strong><br/>"
+                        "Ringkas keluhan, klasifikasi urgensi, sarankan tindak lanjut, lalu buat balasan resmi.</div>"
+                    )
+                    gr.HTML(
+                        "<div class='legawa-card'><strong>📄 RUU → catatan pasal</strong><br/>"
+                        "Temukan isu implementasi, potensi konflik, dan risiko HAM/demokrasi per pasal.</div>"
+                    )
+                    gr.HTML(
+                        "<div class='legawa-card'><strong>🔍 Topik → memo hukum</strong><br/>"
+                        "Cari konteks aturan via pasal.id, lalu susun memo awal yang bisa diaudit.</div>"
+                    )
                 gr.Markdown(
                     "### 🚀 Panduan Cepat\n\n"
-                    "1. **📄 Analisis RUU** — Tempel teks RUU atau upload PDF, klik Analisis\n"
-                    "2. **🔍 Riset Hukum** — Cari peraturan Indonesia berdasarkan topik\n"
-                    "3. **✍️ Draf Dokumen** — Buat pidato, naskah akademik, atau memo kebijakan\n"
-                    "4. **📬 Surat Konstituen** — Triase dan balas surat/email konstituen\n"
-                    "5. **⚙️ Pengaturan** — Atur koneksi LLM dan token API\n\n"
+                    "1. Buka **📬 Surat Konstituen** dan klik contoh untuk demo tercepat.\n"
+                    "2. Coba **📄 Analisis RUU** untuk melihat audit pasal + guardrail etika.\n"
+                    "3. Gunakan **🔍 Riset Hukum** atau **✍️ Draf Dokumen** untuk workflow staf ahli.\n"
+                    "4. **⚙️ Pengaturan** hanya diperlukan jika ingin mengganti model/token.\n\n"
                     "---\n"
                 )
                 gr.Markdown(
@@ -440,6 +501,11 @@ def build_app() -> gr.Blocks:
                     inputs=[ruu_file],
                     outputs=[ruu_text],
                 )
+                gr.Examples(
+                    examples=[[RUU_EXAMPLE]],
+                    inputs=[ruu_text],
+                    label="Contoh cepat",
+                )
                 ruu_btn.click(
                     fn=agent_analyze,
                     inputs=[
@@ -462,6 +528,14 @@ def build_app() -> gr.Blocks:
                 with gr.Row():
                     riset_btn = gr.Button("Riset Hukum", variant="primary", size="lg")
                 riset_out = gr.Markdown(label="Memo Riset")
+                gr.Examples(
+                    examples=[
+                        ["perlindungan data pribadi pasien di rumah sakit"],
+                        ["kewenangan DPRD dalam pengawasan banjir dan drainase kota"],
+                    ],
+                    inputs=[riset_topic],
+                    label="Contoh cepat",
+                )
                 riset_btn.click(
                     fn=agent_research,
                     inputs=[
@@ -506,6 +580,14 @@ def build_app() -> gr.Blocks:
                 with gr.Row():
                     draft_btn = gr.Button("Susun Naskah", variant="primary", size="lg")
                 draft_out = gr.Markdown(label="Draf Dokumen")
+                gr.Examples(
+                    examples=[
+                        ["memo_kebijakan", "langkah DPRD mempercepat perbaikan drainase kota", "buat ringkas untuk rapat komisi", True],
+                        ["siaran_pers", "perlindungan data pribadi pasien", "nada tegas tapi empatik", True],
+                    ],
+                    inputs=[draft_kind, draft_topic, draft_extra, draft_research],
+                    label="Contoh cepat",
+                )
                 draft_btn.click(
                     fn=agent_draft,
                     inputs=[
@@ -535,6 +617,11 @@ def build_app() -> gr.Blocks:
                 with gr.Row():
                     surat_btn = gr.Button("Triase & Balas", variant="primary", size="lg")
                 surat_out = gr.Markdown(label="Hasil")
+                gr.Examples(
+                    examples=[[SURAT_EXAMPLE, True]],
+                    inputs=[surat_text, surat_verify],
+                    label="Contoh cepat untuk juri",
+                )
                 surat_btn.click(
                     fn=agent_surat,
                     inputs=[
@@ -548,67 +635,65 @@ def build_app() -> gr.Blocks:
             # ─── Tab 5: Pengaturan ──────────────────────────────────────
             with gr.TabItem("⚙️ Pengaturan"):
                 gr.Markdown(
-                    "### Cara Mendapatkan Token\n\n"
-                    "Semua field bisa dikosongkan — pakai yang sudah ada sebagai env var.\n\n"
-                    "**🔑 HF Token** — [Dapatkan di sini](https://huggingface.co/settings/tokens)\n"
-                    "Buat *read-only* token (gratis). Digunakan untuk memanggil model lewat "
-                    "[HF Inference API](https://huggingface.co/docs/api-inference/index).\n\n"
-                    "**📜 pasal.id Token** — [Daftar di sini](https://pasal.id)\n"
-                    "Token API untuk database peraturan Indonesia (gratis). "
-                    "Bisa dikosongkan — analisis tetap jalan tanpa pencarian peraturan.\n\n"
-                    "**🔗 Custom LLM Endpoint** — URL + API Key untuk llama.cpp / vLLM / OpenAI-compatible.\n"
-                    "Isi URL di field Model ID / URL, API Key, dan Model Name. "
-                    "Kosongkan untuk pakai HF Inference API.\n"
-                    "---"
+                    "### Pengaturan Opsional\n\n"
+                    "Untuk juri: langsung pakai tab demo. Halaman ini hanya untuk mengganti model, "
+                    "memasukkan token sendiri, atau menguji koneksi. Default Legawa memakai "
+                    "**Qwen/Qwen3.5-9B untuk BIG dan SMALL** agar tetap jauh di bawah batas 32B parameter.\n"
                 )
-                with gr.Group():
-                    gr.Markdown("### 🧠 LLM BIG (sintesis, drafting)")
-                    s_big_url = gr.Textbox(label="Model ID / URL", value=HF_BIG_MODEL)
-                    s_big_key = gr.Textbox(
-                        label="API Key",
-                        type="password",
-                        value="",
-                        placeholder="Kosongkan — pakai HF_TOKEN env var",
+                with gr.Accordion("🔧 Advanced: model, token, dan endpoint", open=False):
+                    gr.Markdown(
+                        "**HF Token**: [buat read-only token](https://huggingface.co/settings/tokens). "
+                        "**pasal.id Token**: [daftar di pasal.id](https://pasal.id). "
+                        "Custom endpoint mendukung llama.cpp / vLLM / OpenAI-compatible."
                     )
-                    s_big_model = gr.Textbox(
-                        label="Model Name",
-                        value="Qwen3-32B",
-                    )
-                with gr.Group():
-                    gr.Markdown("### 🧠 LLM SMALL (klasifikasi, ekstraksi)")
-                    s_small_url = gr.Textbox(label="Model ID / URL", value=HF_SMALL_MODEL)
-                    s_small_key = gr.Textbox(
-                        label="API Key",
-                        type="password",
-                        value="",
-                        placeholder="Kosongkan — pakai HF_TOKEN env var",
-                    )
-                    s_small_model = gr.Textbox(
-                        label="Model Name",
-                        value="Qwen3.5-9B",
-                    )
-                with gr.Group():
-                    gr.Markdown("### 📜 pasal.id")
-                    s_pasal_token = gr.Textbox(
-                        label="API Token",
-                        type="password",
-                        value="",
-                        placeholder="Kosongkan — cari peraturan tidak akan jalan",
-                    )
-                with gr.Group():
-                    gr.Markdown("### ⚙️ Lainnya")
-                    s_temp = gr.Slider(
-                        label="Temperature",
-                        minimum=0.0, maximum=1.0, step=0.05, value=0.3,
-                    )
-                    s_max_tokens = gr.Slider(
-                        label="Max Tokens",
-                        minimum=512, maximum=8192, step=256, value=4096,
-                    )
-                    s_strict = gr.Checkbox(
-                        label="Strict citations (tolak draft jika sitasi tidak terverifikasi)",
-                        value=True,
-                    )
+                    with gr.Group():
+                        gr.Markdown("### 🧠 LLM BIG (sintesis, drafting)")
+                        s_big_url = gr.Textbox(label="Model ID / URL", value=HF_BIG_MODEL)
+                        s_big_key = gr.Textbox(
+                            label="API Key",
+                            type="password",
+                            value="",
+                            placeholder="Kosongkan — pakai HF_TOKEN env var",
+                        )
+                        s_big_model = gr.Textbox(
+                            label="Model Name",
+                            value="Qwen3.5-9B",
+                        )
+                    with gr.Group():
+                        gr.Markdown("### 🧠 LLM SMALL (klasifikasi, ekstraksi)")
+                        s_small_url = gr.Textbox(label="Model ID / URL", value=HF_SMALL_MODEL)
+                        s_small_key = gr.Textbox(
+                            label="API Key",
+                            type="password",
+                            value="",
+                            placeholder="Kosongkan — pakai HF_TOKEN env var",
+                        )
+                        s_small_model = gr.Textbox(
+                            label="Model Name",
+                            value="Qwen3.5-9B",
+                        )
+                    with gr.Group():
+                        gr.Markdown("### 📜 pasal.id")
+                        s_pasal_token = gr.Textbox(
+                            label="API Token",
+                            type="password",
+                            value="",
+                            placeholder="Kosongkan — cari peraturan tidak akan jalan",
+                        )
+                    with gr.Group():
+                        gr.Markdown("### ⚙️ Lainnya")
+                        s_temp = gr.Slider(
+                            label="Temperature",
+                            minimum=0.0, maximum=1.0, step=0.05, value=0.3,
+                        )
+                        s_max_tokens = gr.Slider(
+                            label="Max Tokens",
+                            minimum=512, maximum=8192, step=256, value=4096,
+                        )
+                        s_strict = gr.Checkbox(
+                            label="Strict citations (tolak draft jika sitasi tidak terverifikasi)",
+                            value=True,
+                        )
                 with gr.Row():
                     save_btn = gr.Button("Simpan & Uji Koneksi", variant="primary")
                 health_out = gr.Markdown(label="Status Koneksi")
