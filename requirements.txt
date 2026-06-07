@@ -1,7 +1,7 @@
 # Legawa — HF Space dependencies
 # Pin versions for reproducible builds on HF Spaces.
 
-gradio>=5.27,<6.0
+gradio>=5.27,<7.0
 openai>=1.50.0,<2.0.0
 httpx>=0.27.0,<0.29.0
 python-dotenv>=1.0.0,<2.0.0
