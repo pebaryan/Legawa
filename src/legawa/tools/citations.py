@@ -12,7 +12,7 @@ import re
 from dataclasses import dataclass
 from typing import Any, Iterable
 
-from .trusted_recent import lookup as _trusted_lookup
+from .trusted_recent import lookup as _trusted_lookup, trusted_entry_warnings as _trusted_warnings
 
 
 _FRBR_RE = re.compile(
@@ -79,6 +79,8 @@ class CitationCheck:
     reference: str
     found: bool
     query: str
+    reason_code: str | None = None
+    flags: tuple[str, ...] = ()
     title: str | None = None
     frbr_uri: str | None = None
     status: str | None = None
@@ -420,6 +422,23 @@ def _canonical_from_hit(hit: Any) -> list[str]:
     return _unique(refs)
 
 
+def _structured_refs_from_hit(hit: Any) -> list[str]:
+    refs: list[str] = []
+    if not isinstance(hit, dict):
+        return refs
+    for key in ("title", "frbr_uri"):
+        value = hit.get(key)
+        if isinstance(value, str):
+            refs.extend(extract_citations(value))
+    work = hit.get("work")
+    if isinstance(work, dict):
+        for key in ("title", "frbr_uri"):
+            value = work.get(key)
+            if isinstance(value, str):
+                refs.extend(extract_citations(value))
+    return _unique(refs)
+
+
 def _infer_query(ref: str) -> tuple[str, str | None]:
     lowered = ref.lower()
     if lowered.startswith("uud 1945"):
@@ -557,6 +576,13 @@ def verify_citation(
     the failure mode where a (kind, number, year) tuple resolves to a real
     regulation that is *not* about what the agent claimed.
 
+    Verification precedence:
+      1. Whitelist the constitutional ``UUD 1945`` citation.
+      2. Search pasal.id and prefer the most structured match.
+      3. If pasal.id is unreachable, fall back to ``trusted_recent``.
+      4. If pasal.id returns only noisy or mismatched hits, allow a matching
+         ``trusted_recent`` override before rejecting the citation.
+
     If ``check_amendments`` is True (default), additionally probes the matched
     regulation's relationships graph and:
       - rejects (``found=False``) if the regulation has been repealed
@@ -577,6 +603,7 @@ def verify_citation(
             reference=primary,
             found=True,
             query=primary,
+            reason_code="constitutional_whitelist",
             title="Undang-Undang Dasar Negara Republik Indonesia Tahun 1945",
             note="constitutional whitelist",
             claimed_topic=claimed_topic,
@@ -587,82 +614,18 @@ def verify_citation(
     if regulation_type:
         params["type"] = regulation_type
 
-    try:
-        response = pasal_client.search(**params)
-    except Exception as exc:  # noqa: BLE001
-        # Pasal.id unreachable (network, 401, 5xx). Try trusted_recent as a
-        # fallback — citations we have local source-of-truth for shouldn't
-        # be blocked by an outage. If the citation is NOT in trusted_recent,
-        # surface the original transport error so the user knows to fix it.
-        trusted = _trusted_lookup(primary)
-        if trusted is not None:
-            title = trusted.get("title")
-            if claimed_topic and title and not _topics_overlap(claimed_topic, title):
-                return CitationCheck(
-                    reference=primary,
-                    found=False,
-                    query=query,
-                    title=title,
-                    frbr_uri=trusted.get("frbr_uri"),
-                    status=trusted.get("status"),
-                    note=(
-                        f"judul tidak cocok dengan klaim '{claimed_topic}' "
-                        f"(judul sebenarnya — sumber trusted_recent: '{title}')"
-                    ),
-                    claimed_topic=claimed_topic,
-                )
-            provenance = trusted.get("note") or "fresh regulation, not yet on pasal.id"
-            return CitationCheck(
-                reference=primary,
-                found=True,
-                query=query,
-                title=title,
-                frbr_uri=trusted.get("frbr_uri"),
-                status=trusted.get("status"),
-                note=f"trusted_recent override (pasal.id unreachable: {exc}) — {provenance}",
-                claimed_topic=claimed_topic,
-            )
-        return CitationCheck(
-            reference=expected_refs[0],
-            found=False,
-            query=query,
-            note=f"verifikasi gagal: {exc}",
-            claimed_topic=claimed_topic,
-        )
-
-    hits = response.get("results") or response.get("hits") or []
-    last_mismatch: CitationCheck | None = None
-    for hit in hits:
-        canonical_hits = _canonical_from_hit(hit)
-        if not any(ref in canonical_hits for ref in expected_refs):
-            continue
-
-        title = None
-        frbr_uri = None
-        status = None
-        if isinstance(hit, dict):
-            title = hit.get("title") or hit.get("work", {}).get("title")
-            frbr_uri = hit.get("frbr_uri") or hit.get("work", {}).get("frbr_uri")
-            status = hit.get("status") or hit.get("work", {}).get("status")
-
-        if claimed_topic and title and not _topics_overlap(claimed_topic, title):
-            last_mismatch = CitationCheck(
-                reference=expected_refs[0],
-                found=False,
-                query=query,
-                title=title,
-                frbr_uri=frbr_uri,
-                status=status,
-                evidence=", ".join(canonical_hits[:3]) or None,
-                note=(
-                    f"judul tidak cocok dengan klaim '{claimed_topic}' "
-                    f"(judul sebenarnya: '{title}')"
-                ),
-                claimed_topic=claimed_topic,
-            )
-            continue
-
-        success_note: str | None = None
+    def _build_success_check(
+        *,
+        title: str | None,
+        frbr_uri: str | None,
+        status: str | None,
+        note: str | None = None,
+        evidence: str | None = None,
+        reason_code: str = "matched",
+        flags: tuple[str, ...] = (),
+    ) -> CitationCheck:
+        success_note = note
+        success_flags = flags
         if check_amendments and frbr_uri:
             repealed_rel, amended_rels = _amendment_status(pasal_client, frbr_uri)
             # NOTE: pasal.id's relationships graph is unreliable in practice —
@@ -683,22 +646,135 @@ def verify_citation(
                     f"regulasi telah diubah; periksa apakah pasal yang dikutip masih berlaku setelah perubahan: {successors}"
                 )
             if advisories:
-                success_note = " | ".join(advisories)
+                advisory_note = " | ".join(advisories)
+                success_note = f"{success_note} | {advisory_note}" if success_note else advisory_note
+                success_flags = tuple(dict.fromkeys((*success_flags, "amended")))
+            if repealed_rel is not None:
+                success_flags = tuple(dict.fromkeys((*success_flags, "repealed_suspected")))
 
         return CitationCheck(
             reference=expected_refs[0],
             found=True,
             query=query,
+            reason_code=reason_code,
+            flags=success_flags,
             title=title,
             frbr_uri=frbr_uri,
             status=status,
-            evidence=", ".join(canonical_hits[:3]) or None,
+            evidence=evidence,
             note=success_note,
             claimed_topic=claimed_topic,
         )
 
-    if last_mismatch is not None:
-        return last_mismatch
+    try:
+        response = pasal_client.search(**params)
+    except Exception as exc:  # noqa: BLE001
+        # Pasal.id unreachable (network, 401, 5xx). Try trusted_recent as a
+        # fallback — citations we have local source-of-truth for shouldn't
+        # be blocked by an outage. If the citation is NOT in trusted_recent,
+        # surface the original transport error so the user knows to fix it.
+        trusted = _trusted_lookup(primary)
+        if trusted is not None:
+            title = trusted.get("title")
+            if claimed_topic and title and not _topics_overlap(claimed_topic, title):
+                return CitationCheck(
+                    reference=primary,
+                    found=False,
+                    query=query,
+                    reason_code="topic_mismatch",
+                    flags=("trusted_recent",),
+                    title=title,
+                    frbr_uri=trusted.get("frbr_uri"),
+                    status=trusted.get("status"),
+                    note=(
+                        f"judul tidak cocok dengan klaim '{claimed_topic}' "
+                        f"(judul sebenarnya — sumber trusted_recent: '{title}')"
+                    ),
+                    claimed_topic=claimed_topic,
+                )
+            provenance = trusted.get("note") or "fresh regulation, not yet on pasal.id"
+            return _build_success_check(
+                title=title,
+                frbr_uri=trusted.get("frbr_uri"),
+                status=trusted.get("status"),
+                note=f"trusted_recent override (pasal.id unreachable: {exc}) — {provenance}",
+                reason_code="trusted_recent",
+            )
+        return CitationCheck(
+            reference=expected_refs[0],
+            found=False,
+            query=query,
+            reason_code="request_error",
+            flags=("pasal_unreachable",),
+            note=f"verifikasi gagal: {exc}",
+            claimed_topic=claimed_topic,
+        )
+
+    hits = response.get("results") or response.get("hits") or []
+    success_candidates: list[tuple[int, dict[str, Any]]] = []
+    mismatch_candidates: list[tuple[int, CitationCheck]] = []
+    for hit in hits:
+        canonical_hits = _canonical_from_hit(hit)
+        if not any(ref in canonical_hits for ref in expected_refs):
+            continue
+
+        title = None
+        frbr_uri = None
+        status = None
+        if isinstance(hit, dict):
+            title = hit.get("title") or hit.get("work", {}).get("title")
+            frbr_uri = hit.get("frbr_uri") or hit.get("work", {}).get("frbr_uri")
+            status = hit.get("status") or hit.get("work", {}).get("status")
+        structured_hits = _structured_refs_from_hit(hit)
+        structured_match = any(ref in structured_hits for ref in expected_refs)
+        priority = 0 if structured_match else 1
+
+        if claimed_topic and title and not _topics_overlap(claimed_topic, title):
+            mismatch_candidates.append(
+                (
+                    priority,
+                    CitationCheck(
+                        reference=expected_refs[0],
+                        found=False,
+                        query=query,
+                        reason_code="topic_mismatch",
+                        flags=("noisy_hit",) if not structured_match else ("structured_hit",),
+                        title=title,
+                        frbr_uri=frbr_uri,
+                        status=status,
+                        evidence=", ".join(canonical_hits[:3]) or None,
+                        note=(
+                            f"judul tidak cocok dengan klaim '{claimed_topic}' "
+                            f"(judul sebenarnya: '{title}')"
+                        ),
+                        claimed_topic=claimed_topic,
+                    ),
+                )
+            )
+            continue
+
+        success_candidates.append(
+            (
+                priority,
+                {
+                    "title": title,
+                    "frbr_uri": frbr_uri,
+                    "status": status,
+                    "evidence": ", ".join(canonical_hits[:3]) or None,
+                    "flags": ("structured_hit",) if structured_match else ("noisy_hit",),
+                },
+            )
+        )
+
+    if success_candidates:
+        _, best = sorted(success_candidates, key=lambda item: item[0])[0]
+        return _build_success_check(
+            title=best["title"],
+            frbr_uri=best["frbr_uri"],
+            status=best["status"],
+            evidence=best["evidence"],
+            flags=best["flags"],
+        )
 
     # Fallback: regulations confirmed real but not yet ingested by pasal.id.
     # Keyed by the same normalized reference form. Topical overlap still
@@ -714,6 +790,8 @@ def verify_citation(
                 reference=primary,
                 found=False,
                 query=query,
+                reason_code="topic_mismatch",
+                flags=("trusted_recent",),
                 title=title,
                 frbr_uri=frbr_uri,
                 status=status,
@@ -724,21 +802,27 @@ def verify_citation(
                 claimed_topic=claimed_topic,
             )
         provenance = trusted.get("note") or "fresh regulation, not yet on pasal.id"
-        return CitationCheck(
-            reference=primary,
-            found=True,
-            query=query,
+        warnings = _trusted_warnings(primary, trusted)
+        trusted_flags = ("trusted_recent",) + (("stale_trusted_entry",) if warnings else ())
+        return _build_success_check(
             title=title,
             frbr_uri=frbr_uri,
             status=status,
-            note=f"trusted_recent override — {provenance}",
-            claimed_topic=claimed_topic,
+            note=(" | ".join([f"trusted_recent override — {provenance}", *warnings]) if warnings else f"trusted_recent override — {provenance}"),
+            reason_code="trusted_recent_stale" if warnings else "trusted_recent",
+            flags=trusted_flags,
         )
+
+    if mismatch_candidates:
+        _, best = sorted(mismatch_candidates, key=lambda item: item[0])[0]
+        return best
 
     return CitationCheck(
         reference=expected_refs[0],
         found=False,
         query=query,
+        reason_code="not_found",
+        flags=("pasal_search_empty",),
         note="TIDAK DITEMUKAN di pasal.id",
         claimed_topic=claimed_topic,
     )

@@ -16,6 +16,7 @@ from legawa.tools.citations import (
     verify_citation,
     verify_citations,
 )
+from legawa.tools.trusted_recent import TRUSTED_RECENT, validate_trusted_entry  # noqa: E402
 
 
 class FakePasalClient:
@@ -184,6 +185,8 @@ class CitationTests(unittest.TestCase):
 
         check = verify_citation(fake, "UU 22/1999", claimed_topic="Pemerintahan Daerah")
         self.assertTrue(check.found)
+        self.assertEqual(check.reason_code, "matched")
+        self.assertIn("repealed_suspected", check.flags)
         self.assertIn("Dicabut oleh", check.note or "")
         self.assertIn("Undang-Undang Nomor 32 Tahun 2004", check.note or "")
         self.assertIn("akn/id/act/uu/2004/32", check.note or "")
@@ -269,6 +272,8 @@ class CitationTests(unittest.TestCase):
 
         check = verify_citation(fake, "UU 13/2003", claimed_topic="Ketenagakerjaan")
         self.assertTrue(check.found)
+        self.assertEqual(check.reason_code, "matched")
+        self.assertIn("amended", check.flags)
         self.assertIn("diubah", (check.note or "").lower())
         self.assertIn("Cipta Kerja", check.note or "")
 
@@ -292,6 +297,7 @@ class CitationTests(unittest.TestCase):
 
         check = verify_citation(fake, "UU 13/2003", check_amendments=False)
         self.assertTrue(check.found)
+        self.assertEqual(check.reason_code, "matched")
         self.assertIsNone(check.note)
         self.assertEqual(fake.get_law_calls, [])
 
@@ -315,6 +321,7 @@ class CitationTests(unittest.TestCase):
 
         check = verify_citation(fake, "UU 13/2003", claimed_topic="Ketenagakerjaan")
         self.assertTrue(check.found)
+        self.assertEqual(check.reason_code, "matched")
         self.assertIsNone(check.note)
         # get_law was attempted but failed silently
         self.assertEqual(fake.get_law_calls, ["akn/id/act/uu/2003/13"])
@@ -324,7 +331,6 @@ class CitationTests(unittest.TestCase):
         # trusted_recent has it. Verifier should accept with topical-overlap
         # enforced against the trusted title.
         fake = FakePasalClient(responses={})
-        from legawa.tools.trusted_recent import TRUSTED_RECENT  # noqa: PLC0415
 
         # Sanity check: the fixture entry exists.
         self.assertIn("Perpres 8/2026", TRUSTED_RECENT)
@@ -336,8 +342,79 @@ class CitationTests(unittest.TestCase):
             check_amendments=False,
         )
         self.assertTrue(check.found)
+        self.assertEqual(check.reason_code, "trusted_recent")
+        self.assertIn("trusted_recent", check.flags)
         self.assertIn("trusted_recent override", check.note or "")
         self.assertIn("akn/id/act/perpres/2026/8", check.frbr_uri or "")
+        self.assertEqual(fake.get_law_calls, [])
+
+    def test_verify_citation_trusted_recent_overrides_noisy_hit(self) -> None:
+        # pasal.id can return a related/noisy hit whose metadata mentions the
+        # citation, but the trusted_recent entry should still win when the
+        # noisy hit does not match the claimed topic.
+        fake = FakePasalClient(
+            responses={
+                "Perpres 8/2026": {
+                    "results": [
+                        {
+                            "title": "Peraturan Presiden Nomor 1 Tahun 2026 tentang Tata Kelola Data",
+                            "snippet": "Lihat juga Perpres 8/2026 dalam daftar rujukan",
+                            "frbr_uri": "akn/id/act/perpres/2026/1",
+                            "status": "berlaku",
+                        }
+                    ]
+                }
+            }
+        )
+
+        check = verify_citation(
+            fake,
+            "Perpres 8/2026",
+            claimed_topic="Rencana Aksi Nasional Pencegahan Ekstremisme Berbasis Kekerasan",
+            check_amendments=False,
+        )
+        self.assertTrue(check.found)
+        self.assertEqual(check.reason_code, "trusted_recent")
+        self.assertIn("trusted_recent", check.flags)
+        self.assertIn("trusted_recent override", check.note or "")
+        self.assertIn("Peraturan Presiden Nomor 8 Tahun 2026", check.title or "")
+        self.assertEqual(fake.get_law_calls, [])
+
+    def test_verify_citation_trusted_recent_checks_amendments(self) -> None:
+        # Trusted overrides should still go through amendment probing when
+        # check_amendments=True so stale entries are not treated as final.
+        fake = FakePasalClient(
+            responses={},
+            laws={
+                "akn/id/act/perpres/2026/8": {
+                    "title": "Peraturan Presiden Nomor 8 Tahun 2026 tentang Rencana Aksi Nasional Pencegahan dan Penanggulangan Ekstremisme Berbasis Kekerasan yang Mengarah pada Terorisme Tahun 2026-2029",
+                    "frbr_uri": "akn/id/act/perpres/2026/8",
+                    "status": "berlaku",
+                    "relationships": [
+                        {
+                            "type": "Diubah oleh",
+                            "type_en": "Amended by",
+                            "related_work": {
+                                "title": "Peraturan Presiden Nomor 9 Tahun 2027 tentang Perubahan atas Rencana Aksi Nasional Pencegahan dan Penanggulangan Ekstremisme Berbasis Kekerasan yang Mengarah pada Terorisme Tahun 2026-2029",
+                                "frbr_uri": "/akn/id/act/perpres/2027/9",
+                            },
+                        }
+                    ],
+                }
+            },
+        )
+
+        check = verify_citation(
+            fake,
+            "Perpres 8/2026",
+            claimed_topic="Rencana Aksi Nasional Pencegahan Ekstremisme Berbasis Kekerasan",
+        )
+        self.assertTrue(check.found)
+        self.assertEqual(check.reason_code, "trusted_recent")
+        self.assertIn("amended", check.flags)
+        self.assertEqual(fake.get_law_calls, ["akn/id/act/perpres/2026/8"])
+        self.assertIn("trusted_recent override", check.note or "")
+        self.assertIn("diubah", (check.note or "").lower())
 
     def test_verify_citation_trusted_recent_rejects_topical_mismatch(self) -> None:
         # Trusted entry exists for Perpres 8/2026 (RAN PE counter-terrorism),
@@ -352,6 +429,7 @@ class CitationTests(unittest.TestCase):
             check_amendments=False,
         )
         self.assertFalse(check.found)
+        self.assertEqual(check.reason_code, "topic_mismatch")
         self.assertIn("judul tidak cocok", check.note or "")
         self.assertIn("trusted_recent", check.note or "")
 
@@ -369,6 +447,7 @@ class CitationTests(unittest.TestCase):
             check_amendments=False,
         )
         self.assertTrue(check.found)
+        self.assertEqual(check.reason_code, "trusted_recent")
         self.assertIn("trusted_recent override", check.note or "")
         self.assertIn("pasal.id unreachable", check.note or "")
 
@@ -387,6 +466,7 @@ class CitationTests(unittest.TestCase):
             check_amendments=False,
         )
         self.assertFalse(check.found)
+        self.assertEqual(check.reason_code, "request_error")
         self.assertIn("verifikasi gagal", check.note or "")
         self.assertIn("401", check.note or "")
 
@@ -402,7 +482,49 @@ class CitationTests(unittest.TestCase):
             check_amendments=False,
         )
         self.assertFalse(check.found)
+        self.assertEqual(check.reason_code, "not_found")
         self.assertIn("TIDAK DITEMUKAN", check.note or "")
+
+    def test_verify_citation_marks_expired_trusted_entries(self) -> None:
+        # A stale trusted entry should still be accepted, but the verifier
+        # should surface that it needs a fresh pasal.id re-check.
+        key = "Perpres 99/2026"
+        TRUSTED_RECENT[key] = {
+            "frbr_uri": "akn/id/act/perpres/2026/99",
+            "title": "Peraturan Presiden Nomor 99 Tahun 2026 tentang Contoh",
+            "status": "berlaku",
+            "signed_date": "2026-01-01",
+            "checked_on": "2026-01-01",
+            "expires_on": "2026-02-01",
+            "source_url": "https://example.invalid/perpres-99-2026",
+            "note": "temporary stale fixture",
+        }
+        try:
+            fake = FakePasalClient(responses={})
+            check = verify_citation(
+                fake,
+                key,
+                claimed_topic="Contoh",
+                check_amendments=False,
+            )
+            self.assertTrue(check.found)
+            self.assertEqual(check.reason_code, "trusted_recent_stale")
+            self.assertIn("stale_trusted_entry", check.flags)
+            self.assertIn("expired on 2026-02-01", check.note or "")
+        finally:
+            TRUSTED_RECENT.pop(key, None)
+
+    def test_validate_trusted_entry_requires_review_date(self) -> None:
+        problems = validate_trusted_entry(
+            "Perpres 1/2027",
+            {
+                "frbr_uri": "akn/id/act/perpres/2027/1",
+                "title": "Peraturan Presiden Nomor 1 Tahun 2027 tentang Contoh",
+                "status": "berlaku",
+                "signed_date": "2027-01-01",
+            },
+        )
+        self.assertIn("missing checked_on or expires_on", problems)
 
     def test_verify_citations_formats_mixed_results(self) -> None:
         fake = FakePasalClient(

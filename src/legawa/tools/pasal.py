@@ -16,7 +16,7 @@ from ..config import Settings
 
 
 REGULATION_TYPES = [
-    "UU", "PERPPU", "PP", "PERPRES", "PERMEN",
+    "UUD", "UU", "PERPPU", "PP", "PERPRES", "PERMEN",
     "PERDA", "PERDA_PROV", "PERDA_KAB",
 ]
 
