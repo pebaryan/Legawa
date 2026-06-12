@@ -44,6 +44,12 @@ class HFLLM:
         """Disable reasoning tokens by default (Qwen-specific)."""
         return {"chat_template_kwargs": {"enable_thinking": think}}
 
+    # Reasoning-token allowance when thinking cannot be disabled: the provider
+    # generates reasoning unconditionally (the /no_think soft switch is also
+    # ignored) and it counts against max_tokens, so unpadded budgets come back
+    # with finish_reason=length and empty content.
+    _THINKING_PAD = 4096
+
     def _call(self, **kwargs: Any) -> Any:
         think = kwargs.pop("think", False)
         if self._supports_template_kwargs is not False:
@@ -59,6 +65,8 @@ class HFLLM:
                 if self._supports_template_kwargs:
                     raise  # provider accepted it before; this 400 is real
                 self._supports_template_kwargs = False
+        if not think and "max_tokens" in kwargs:
+            kwargs = {**kwargs, "max_tokens": kwargs["max_tokens"] + self._THINKING_PAD}
         return self.client.chat.completions.create(model=self.model_id, **kwargs)
 
     def chat(
@@ -71,10 +79,6 @@ class HFLLM:
     ) -> str:
         """Direct chat completion (no tools)."""
         kwargs: dict[str, Any] = {"max_tokens": max_tokens or 4096}
-        if self._supports_template_kwargs is False and not think:
-            # Thinking can't be disabled provider-side; reasoning tokens count
-            # against the budget, so small budgets would yield empty replies.
-            kwargs["max_tokens"] = max(kwargs["max_tokens"], 2048)
         if temperature is not None:
             kwargs["temperature"] = temperature
         kwargs["think"] = think
@@ -84,14 +88,9 @@ class HFLLM:
             **kwargs,
         )
         content = resp.choices[0].message.content or ""
-        if (
-            not content.strip()
-            and self._supports_template_kwargs is False
-            and kwargs["max_tokens"] < 2048
-        ):
-            # First call after fallback detection ran with the original small
-            # budget and thinking ate it all — retry once with the floor.
-            kwargs["max_tokens"] = 2048
+        if not content.strip() and self._supports_template_kwargs is False:
+            # The fallback-detection call itself ran unpadded and thinking ate
+            # the budget — retry once now that _call pads automatically.
             resp = self._call(messages=messages, **kwargs)
             content = resp.choices[0].message.content or ""
         # If thinking could not be disabled provider-side, strip it here so
