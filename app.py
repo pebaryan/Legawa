@@ -7,10 +7,15 @@ is HF Inference API (zero-config demo); users can override in Settings.
 """
 from __future__ import annotations
 
+import io
 import os
 import sys
 import tempfile
+import threading
+import time
+import traceback
 from pathlib import Path
+from typing import Callable, Iterator
 
 # Ensure the src/ package is importable on HF Spaces
 _src = Path(__file__).resolve().parent / "src"
@@ -18,6 +23,7 @@ if _src.exists() and str(_src) not in sys.path:
     sys.path.insert(0, str(_src))
 
 import gradio as gr
+from rich.console import Console
 
 from legawa.agents import analis_ruu, peneliti, penyusun, surat
 from legawa.tools.cache import CachingPasalClient
@@ -174,6 +180,82 @@ def _pasal_settings(pasal_token: str) -> Settings:
     return pool, pasal
 
 
+# ── Live agent-activity streaming ────────────────────────────────────────
+# Agents report progress via rich Console. Each run gets its own capturing
+# console; lines are streamed to a gr.Chatbot so the multi-agent pipeline
+# (query expansion → probes → search → synthesis → ethics) is visible live.
+
+AGENT_LABELS = {
+    "peneliti": "🔎 Peneliti Hukum",
+    "penyusun": "📝 Penyusun Naskah",
+    "surat": "📬 Agen Surat",
+    "analis_ruu": "📄 Analis RUU",
+    "analis": "📄 Analis RUU",
+    "etika": "⚖️ Verifikator Etika & HAM",
+}
+ORCHESTRATOR = "🧭 Orkestrator"
+
+# Gradio 6 dropped Chatbot(type=...) — "messages" is the only/default format.
+_CHATBOT_KW = {} if int(gr.__version__.split(".")[0]) >= 6 else {"type": "messages"}
+
+
+def _activity_chatbot() -> gr.Chatbot:
+    return gr.Chatbot(label="🤖 Aktivitas Agen (live)", height=260, **_CHATBOT_KW)
+
+
+def _label_for(line: str) -> tuple[str, str]:
+    head, sep, rest = line.partition(":")
+    if sep and head.strip().lower() in AGENT_LABELS:
+        return AGENT_LABELS[head.strip().lower()], rest.strip()
+    return ORCHESTRATOR, line.strip()
+
+
+def _stream_run(work: Callable[[Console], str]) -> Iterator[tuple[list[dict], str]]:
+    """Run a pipeline in a thread, yielding (activity_messages, final_markdown)."""
+    buf = io.StringIO()
+    console = Console(file=buf, force_terminal=False, no_color=True, width=200)
+    result: dict[str, str] = {}
+
+    def runner() -> None:
+        try:
+            result["output"] = work(console)
+        except Exception as e:  # noqa: BLE001
+            result["error"] = str(e)
+            traceback.print_exc()
+
+    thread = threading.Thread(target=runner, daemon=True)
+    thread.start()
+
+    messages: list[dict] = []
+    seen = 0
+    while True:
+        alive = thread.is_alive()
+        text = buf.getvalue()
+        chunk = text[seen:]
+        lines = chunk.splitlines(keepends=True)
+        for line in lines:
+            if not line.endswith("\n") and alive:
+                break  # hold back a partial trailing line
+            seen += len(line)
+            stripped = line.strip()
+            if not stripped:
+                continue
+            label, msg = _label_for(stripped)
+            messages.append({"role": "assistant", "content": f"**{label}** · {msg}"})
+        if not alive:
+            break
+        yield messages, "⏳ *Agen sedang bekerja...*"
+        time.sleep(0.4)
+
+    thread.join()
+    if "error" in result:
+        messages.append({"role": "assistant", "content": f"**{ORCHESTRATOR}** · ❌ gagal: {result['error']}"})
+        yield messages, f"**Error:** {result['error']}"
+    else:
+        messages.append({"role": "assistant", "content": f"**{ORCHESTRATOR}** · ✅ selesai"})
+        yield messages, result.get("output", "")
+
+
 # ── Agent wrappers (called by Gradio) ───────────────────────────────────
 
 def agent_analyze(
@@ -183,27 +265,26 @@ def agent_analyze(
     small_url: str,
     small_key: str,
     pasal_token: str,
-    progress=gr.Progress(),
-) -> str:
+):
     if not source.strip():
-        return "Masukkan teks RUU atau upload file PDF."
-    progress(0.1, desc="Memuat model & koneksi...")
-    pool, pasal = build_pool(
-        big_url=big_url, big_key=big_key,
-        small_url=small_url, small_key=small_key,
-        pasal_token=pasal_token,
-    )
-    try:
-        progress(0.3, desc="Menganalisis RUU...")
-        result = analis_ruu.analyze(pool, pasal, source)
-        progress(0.8, desc="Verifikasi etika & HAM...")
-        output = ethics_verify(result.output, pool.small)
-        progress(1.0, desc="Selesai!")
-        return output
-    except Exception as e:
-        return f"**Error:** {e}"
-    finally:
-        pasal.close()
+        yield [], "Masukkan teks RUU atau upload file PDF."
+        return
+
+    def work(console: Console) -> str:
+        console.print("orkestrator: memuat model & koneksi, menyerahkan ke Analis RUU")
+        pool, pasal = build_pool(
+            big_url=big_url, big_key=big_key,
+            small_url=small_url, small_key=small_key,
+            pasal_token=pasal_token,
+        )
+        try:
+            result = analis_ruu.analyze(pool, pasal, source, console=console)
+            console.print("etika: verifikasi 4 nilai demokrasi & HAM")
+            return ethics_verify(result.output, pool.small)
+        finally:
+            pasal.close()
+
+    yield from _stream_run(work)
 
 
 def agent_research(
@@ -213,28 +294,26 @@ def agent_research(
     small_url: str,
     small_key: str,
     pasal_token: str,
-    progress=gr.Progress(),
-) -> str:
+):
     if not topic.strip():
-        return "Masukkan topik riset hukum."
-    progress(0.1, desc="Memuat model & koneksi...")
-    pool, pasal = build_pool(
-        big_url=big_url, big_key=big_key,
-        small_url=small_url, small_key=small_key,
-        pasal_token=pasal_token,
-    )
-    try:
-        progress(0.2, desc="Ekspansi query...")
-        progress(0.5, desc="Mencari peraturan...")
-        output = peneliti.research(pool, pasal, topic)
-        progress(0.8, desc="Verifikasi etika & HAM...")
-        output = ethics_verify(output, pool.small)
-        progress(1.0, desc="Selesai!")
-        return output
-    except Exception as e:
-        return f"**Error:** {e}"
-    finally:
-        pasal.close()
+        yield [], "Masukkan topik riset hukum."
+        return
+
+    def work(console: Console) -> str:
+        console.print("orkestrator: memuat model & koneksi, menyerahkan ke Peneliti Hukum")
+        pool, pasal = build_pool(
+            big_url=big_url, big_key=big_key,
+            small_url=small_url, small_key=small_key,
+            pasal_token=pasal_token,
+        )
+        try:
+            output = peneliti.research(pool, pasal, topic, console=console)
+            console.print("etika: verifikasi 4 nilai demokrasi & HAM")
+            return ethics_verify(output, pool.small)
+        finally:
+            pasal.close()
+
+    yield from _stream_run(work)
 
 
 def agent_draft(
@@ -247,31 +326,31 @@ def agent_draft(
     small_url: str,
     small_key: str,
     pasal_token: str,
-    progress=gr.Progress(),
-) -> str:
+):
     if not topic.strip():
-        return "Masukkan topik."
-    progress(0.1, desc="Memuat model & koneksi...")
-    pool, pasal = build_pool(
-        big_url=big_url, big_key=big_key,
-        small_url=small_url, small_key=small_key,
-        pasal_token=pasal_token,
-    )
-    try:
-        progress(0.3, desc="Menyusun naskah...")
-        output = penyusun.draft(
-            pool, pasal, kind, topic,
-            with_research=with_research,
-            extra_instructions=extra_instructions or None,
+        yield [], "Masukkan topik."
+        return
+
+    def work(console: Console) -> str:
+        console.print("orkestrator: memuat model & koneksi, menyerahkan ke Penyusun Naskah")
+        pool, pasal = build_pool(
+            big_url=big_url, big_key=big_key,
+            small_url=small_url, small_key=small_key,
+            pasal_token=pasal_token,
         )
-        progress(0.8, desc="Verifikasi etika & HAM...")
-        output = ethics_verify(output, pool.small)
-        progress(1.0, desc="Selesai!")
-        return output
-    except Exception as e:
-        return f"**Error:** {e}"
-    finally:
-        pasal.close()
+        try:
+            output = penyusun.draft(
+                pool, pasal, kind, topic,
+                with_research=with_research,
+                extra_instructions=extra_instructions or None,
+                console=console,
+            )
+            console.print("etika: verifikasi 4 nilai demokrasi & HAM")
+            return ethics_verify(output, pool.small)
+        finally:
+            pasal.close()
+
+    yield from _stream_run(work)
 
 
 def agent_surat(
@@ -282,31 +361,31 @@ def agent_surat(
     small_url: str,
     small_key: str,
     pasal_token: str,
-    progress=gr.Progress(),
-) -> str:
+):
     if not surat_text.strip():
-        return "Masukkan teks surat konstituen."
-    progress(0.1, desc="Memuat model & koneksi...")
-    pool, pasal = build_pool(
-        big_url=big_url, big_key=big_key,
-        small_url=small_url, small_key=small_key,
-        pasal_token=pasal_token,
-    )
-    try:
-        progress(0.3, desc="Triase surat...")
-        result = surat.reply(
-            pool, pasal, surat_text,
-            verify_law=verify_law,
+        yield [], "Masukkan teks surat konstituen."
+        return
+
+    def work(console: Console) -> str:
+        console.print("orkestrator: memuat model & koneksi, menyerahkan ke Agen Surat")
+        pool, pasal = build_pool(
+            big_url=big_url, big_key=big_key,
+            small_url=small_url, small_key=small_key,
+            pasal_token=pasal_token,
         )
-        output = surat.format_report(result)
-        progress(0.8, desc="Verifikasi etika & HAM...")
-        output = ethics_verify(output, pool.small)
-        progress(1.0, desc="Selesai!")
-        return output
-    except Exception as e:
-        return f"**Error:** {e}"
-    finally:
-        pasal.close()
+        try:
+            result = surat.reply(
+                pool, pasal, surat_text,
+                verify_law=verify_law,
+                console=console,
+            )
+            output = surat.format_report(result)
+            console.print("etika: verifikasi 4 nilai demokrasi & HAM")
+            return ethics_verify(output, pool.small)
+        finally:
+            pasal.close()
+
+    yield from _stream_run(work)
 
 
 def agent_health(
@@ -495,6 +574,7 @@ def build_app() -> gr.Blocks:
                         )
                 with gr.Row():
                     ruu_btn = gr.Button("Analisis RUU", variant="primary", size="lg")
+                ruu_act = _activity_chatbot()
                 ruu_out = gr.Markdown(label="Hasil Analisis")
                 ruu_file.change(
                     fn=handle_file_upload,
@@ -512,7 +592,7 @@ def build_app() -> gr.Blocks:
                         ruu_text, big_url, big_key,
                         small_url, small_key, pasal_token,
                     ],
-                    outputs=[ruu_out],
+                    outputs=[ruu_act, ruu_out],
                 )
 
             # ─── Tab 2: Riset Hukum ────────────────────────────────────
@@ -527,6 +607,7 @@ def build_app() -> gr.Blocks:
                     )
                 with gr.Row():
                     riset_btn = gr.Button("Riset Hukum", variant="primary", size="lg")
+                riset_act = _activity_chatbot()
                 riset_out = gr.Markdown(label="Memo Riset")
                 gr.Examples(
                     examples=[
@@ -542,7 +623,7 @@ def build_app() -> gr.Blocks:
                         riset_topic, big_url, big_key,
                         small_url, small_key, pasal_token,
                     ],
-                    outputs=[riset_out],
+                    outputs=[riset_act, riset_out],
                 )
 
             # ─── Tab 3: Draf Dokumen ──────────────────────────────────
@@ -579,6 +660,7 @@ def build_app() -> gr.Blocks:
                     )
                 with gr.Row():
                     draft_btn = gr.Button("Susun Naskah", variant="primary", size="lg")
+                draft_act = _activity_chatbot()
                 draft_out = gr.Markdown(label="Draf Dokumen")
                 gr.Examples(
                     examples=[
@@ -596,7 +678,7 @@ def build_app() -> gr.Blocks:
                         big_url, big_key, small_url, small_key,
                         pasal_token,
                     ],
-                    outputs=[draft_out],
+                    outputs=[draft_act, draft_out],
                 )
 
             # ─── Tab 4: Surat Konstituen ───────────────────────────────
@@ -616,6 +698,7 @@ def build_app() -> gr.Blocks:
                     )
                 with gr.Row():
                     surat_btn = gr.Button("Triase & Balas", variant="primary", size="lg")
+                surat_act = _activity_chatbot()
                 surat_out = gr.Markdown(label="Hasil")
                 gr.Examples(
                     examples=[[SURAT_EXAMPLE, True]],
@@ -629,7 +712,7 @@ def build_app() -> gr.Blocks:
                         big_url, big_key, small_url, small_key,
                         pasal_token,
                     ],
-                    outputs=[surat_out],
+                    outputs=[surat_act, surat_out],
                 )
 
             # ─── Tab 5: Pengaturan ──────────────────────────────────────
