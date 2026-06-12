@@ -3,7 +3,6 @@ from __future__ import annotations
 import sys
 import unittest
 from pathlib import Path
-
 SRC = Path(__file__).resolve().parents[1] / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
@@ -103,6 +102,44 @@ class PenyusunTests(unittest.TestCase):
         self.assertIn("Kesehatan", system_prompt)
         self.assertIn("Komisi X", system_prompt)
         self.assertIn("Pendidikan", system_prompt)
+
+    def test_draft_includes_all_komisi_reference_lines(self) -> None:
+        # Cover the full commission table so any accidental omission or
+        # renumbering in the prompt is caught immediately.
+        pool = FakePool(
+            make_settings(),
+            small_response='["pengadaan sekolah dasar"]',
+            big_response="Memo singkat.",
+        )
+        pasal = FakePasalClient()
+
+        draft(
+            pool,
+            pasal,
+            kind="memo_kebijakan",
+            topic="uji cakupan seluruh komisi",
+            with_research=False,
+        )
+
+        system_prompt = pool.big.calls[0][0][0]["content"]
+        expected_headers = [
+            "- Komisi I:",
+            "- Komisi II:",
+            "- Komisi III:",
+            "- Komisi IV:",
+            "- Komisi V:",
+            "- Komisi VI:",
+            "- Komisi VII:",
+            "- Komisi VIII:",
+            "- Komisi IX:",
+            "- Komisi X:",
+            "- Komisi XI:",
+            "- Komisi XII:",
+            "- Komisi XIII:",
+        ]
+        self.assertEqual(system_prompt.count("- Komisi "), 13)
+        for header in expected_headers:
+            self.assertIn(header, system_prompt)
 
     def test_draft_blocks_unverified_citation(self) -> None:
         pool = FakePool(
