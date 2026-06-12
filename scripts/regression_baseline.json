@@ -2,9 +2,12 @@
   "canonical_probes": {
     "akn/id/act/permenkes/2022/7": {
       "amended_by": [],
-      "repealed_by": null,
-      "status": "berlaku",
-      "title": "Peraturan Menteri Nomor 7 Tahun 2022 tentang PENYELENGGARAAN PROGRAM INTERNSIP DOKTER DAN DOKTER GIGI",
+      "repealed_by": {
+        "frbr_uri": "/akn/id/act/permenkes/2025/13",
+        "title": "Peraturan Menteri Nomor 13 Tahun 2025 tentang Pengelolaan Sumber Daya Manusia Kesehatan"
+      },
+      "status": "tidak_berlaku",
+      "title": "Peraturan Menteri Nomor 7 Tahun 2022 tentang Penyelenggaraan Program Internsip Dokter dan Dokter Gigi",
       "uri": "akn/id/act/permenkes/2022/7"
     },
     "akn/id/act/perpres/2018/16": {
@@ -51,7 +54,7 @@
       "amended_by": [],
       "repealed_by": null,
       "status": "berlaku",
-      "title": "Peraturan Presiden Nomor 83 Tahun 2024 tentang Peraturan Presiden Nomor 83 Tahun 2024",
+      "title": "Peraturan Presiden Nomor 83 Tahun 2024 tentang BADAN GIZI NASIONAL",
       "uri": "akn/id/act/perpres/2024/83"
     },
     "akn/id/act/perpres/2025/115": {
@@ -72,7 +75,7 @@
       "amended_by": [],
       "repealed_by": null,
       "status": "berlaku",
-      "title": "Peraturan Pemerintah Nomor 35 Tahun 2021 tentang Perjanjian Kerja Waktu Tertentu, Alih Daya, Waktu Kerja dan Waktu Istir",
+      "title": "Peraturan Pemerintah Nomor 35 Tahun 2021 tentang PERJANJIAN KERJA WAKTU TERTENTU, ALIH DAYA, WAKTU KERJA DAN WAKTU ISTIR",
       "uri": "akn/id/act/pp/2021/35"
     },
     "akn/id/act/pp/2024/28": {
@@ -118,11 +121,11 @@
         }
       ],
       "repealed_by": {
-        "frbr_uri": "/akn/id/act/uu/2002/30",
-        "title": "Undang-Undang Nomor 30 Tahun 2002 tentang Komisi Pemberantasan Tindak Pidana Korupsi"
+        "frbr_uri": "/akn/id/act/uu/2023/1",
+        "title": "Undang-Undang Nomor 1 Tahun 2023 tentang Kitab Undang-Undang Hukum Pidana"
       },
       "status": "berlaku",
-      "title": "Undang-Undang Nomor 31 Tahun 1999 tentang Undang-Undang Nomor 31 Tahun 1999",
+      "title": "Undang-Undang Nomor 31 Tahun 1999 tentang PEMBERANTASAN TINDAK PIDANA KORUPSI",
       "uri": "akn/id/act/uu/1999/31"
     },
     "akn/id/act/uu/1999/37": {
@@ -161,8 +164,8 @@
         }
       ],
       "repealed_by": {
-        "frbr_uri": "/akn/id/act/uu/2002/30",
-        "title": "Undang-Undang Nomor 30 Tahun 2002 tentang Komisi Pemberantasan Tindak Pidana Korupsi"
+        "frbr_uri": "/akn/id/act/uu/2023/1",
+        "title": "Undang-Undang Nomor 1 Tahun 2023 tentang Kitab Undang-Undang Hukum Pidana"
       },
       "status": "berlaku",
       "title": "Undang-Undang Nomor 20 Tahun 2001 tentang Perubahan Uu 31-1999 Tentang Pemberantasan Tindak Pidana Korupsi",
@@ -195,12 +198,12 @@
           "title": "Undang-Undang Nomor 6 Tahun 2023 tentang PENETAPAN PERATURAN PEMERINTAH PENGGANTI UNDANG-UNDANG NOMOR 2 TAHUN 2022 TENTA"
         },
         {
-          "frbr_uri": "/akn/id/act/perpu/2022/2",
-          "title": "Peraturan Pemerintah Pengganti Undang-Undang Nomor 2 Tahun 2022 tentang Cipta Kerja"
-        },
-        {
           "frbr_uri": "/akn/id/act/uu/2020/11",
           "title": "Undang-Undang Nomor 11 Tahun 2020 tentang CIPTA KERJA"
+        },
+        {
+          "frbr_uri": "/akn/id/act/perpu/2022/2",
+          "title": "Peraturan Pemerintah Pengganti Undang-Undang Nomor 2 Tahun 2022 tentang Cipta Kerja"
         }
       ],
       "repealed_by": null,
@@ -212,15 +215,11 @@
       "amended_by": [
         {
           "frbr_uri": "/akn/id/act/uu/2025/1",
-          "title": "Undang-Undang Nomor 1 Tahun 2025 tentang Perubahan Ketiga Atas Undang-undang Nomor 19 Tahun 2003 Tentang Badan Usaha Mil"
+          "title": "Undang-Undang Nomor 1 Tahun 2025 tentang Perubahan Ketiga atas Undang-Undang Nomor 19 Tahun 2003 tentang Badan Usaha Mil"
         },
         {
           "frbr_uri": "/akn/id/act/uu/2025/16",
           "title": "Undang-Undang Nomor 16 Tahun 2025 tentang Perubahan Keempat atas Undang-Undang Nomor 19 Tahun 2003 tentang Badan Usaha M"
-        },
-        {
-          "frbr_uri": "/akn/id/act/perpu/2022/2",
-          "title": "Peraturan Pemerintah Pengganti Undang-Undang Nomor 2 Tahun 2022 tentang Cipta Kerja"
         },
         {
           "frbr_uri": "/akn/id/act/uu/2023/6",
@@ -229,6 +228,10 @@
         {
           "frbr_uri": "/akn/id/act/uu/2020/11",
           "title": "Undang-Undang Nomor 11 Tahun 2020 tentang CIPTA KERJA"
+        },
+        {
+          "frbr_uri": "/akn/id/act/perpu/2022/2",
+          "title": "Peraturan Pemerintah Pengganti Undang-Undang Nomor 2 Tahun 2022 tentang Cipta Kerja"
         }
       ],
       "repealed_by": null,
@@ -253,21 +256,21 @@
     "akn/id/act/uu/2007/23": {
       "amended_by": [
         {
-          "frbr_uri": "/akn/id/act/perpu/2022/2",
-          "title": "Peraturan Pemerintah Pengganti Undang-Undang Nomor 2 Tahun 2022 tentang Cipta Kerja"
-        },
-        {
           "frbr_uri": "/akn/id/act/uu/2023/6",
           "title": "Undang-Undang Nomor 6 Tahun 2023 tentang PENETAPAN PERATURAN PEMERINTAH PENGGANTI UNDANG-UNDANG NOMOR 2 TAHUN 2022 TENTA"
         },
         {
           "frbr_uri": "/akn/id/act/uu/2020/11",
           "title": "Undang-Undang Nomor 11 Tahun 2020 tentang CIPTA KERJA"
+        },
+        {
+          "frbr_uri": "/akn/id/act/perpu/2022/2",
+          "title": "Peraturan Pemerintah Pengganti Undang-Undang Nomor 2 Tahun 2022 tentang Cipta Kerja"
         }
       ],
       "repealed_by": null,
       "status": "berlaku",
-      "title": "Undang-Undang Nomor 23 Tahun 2007 tentang Undang-Undang Nomor 23 Tahun 2007",
+      "title": "Undang-Undang Nomor 23 Tahun 2007 tentang PERKERETAAPIAN",
       "uri": "akn/id/act/uu/2007/23"
     },
     "akn/id/act/uu/2007/24": {
@@ -287,21 +290,21 @@
     "akn/id/act/uu/2008/20": {
       "amended_by": [
         {
-          "frbr_uri": "/akn/id/act/perpu/2022/2",
-          "title": "Peraturan Pemerintah Pengganti Undang-Undang Nomor 2 Tahun 2022 tentang Cipta Kerja"
-        },
-        {
           "frbr_uri": "/akn/id/act/uu/2023/6",
           "title": "Undang-Undang Nomor 6 Tahun 2023 tentang PENETAPAN PERATURAN PEMERINTAH PENGGANTI UNDANG-UNDANG NOMOR 2 TAHUN 2022 TENTA"
         },
         {
           "frbr_uri": "/akn/id/act/uu/2020/11",
           "title": "Undang-Undang Nomor 11 Tahun 2020 tentang CIPTA KERJA"
+        },
+        {
+          "frbr_uri": "/akn/id/act/perpu/2022/2",
+          "title": "Peraturan Pemerintah Pengganti Undang-Undang Nomor 2 Tahun 2022 tentang Cipta Kerja"
         }
       ],
       "repealed_by": null,
       "status": "berlaku",
-      "title": "Undang-Undang Nomor 20 Tahun 2008 tentang Undang-Undang Nomor 20 Tahun 2008",
+      "title": "Undang-Undang Nomor 20 Tahun 2008 tentang USAHA MIKRO, KECIL, DAN MENENGAH",
       "uri": "akn/id/act/uu/2008/20"
     },
     "akn/id/act/uu/2009/11": {
@@ -316,62 +319,62 @@
         "title": "Undang-Undang Nomor 14 Tahun 2019 tentang Pekerja Sosial"
       },
       "status": "berlaku",
-      "title": "Undang-Undang Nomor 11 Tahun 2009 tentang Undang-Undang Nomor 11 Tahun 2009",
+      "title": "Undang-Undang Nomor 11 Tahun 2009 tentang KESEJAHTERAAN SOSIAL",
       "uri": "akn/id/act/uu/2009/11"
     },
     "akn/id/act/uu/2009/22": {
       "amended_by": [
         {
-          "frbr_uri": "/akn/id/act/perpu/2022/2",
-          "title": "Peraturan Pemerintah Pengganti Undang-Undang Nomor 2 Tahun 2022 tentang Cipta Kerja"
-        },
-        {
           "frbr_uri": "/akn/id/act/uu/2023/6",
           "title": "Undang-Undang Nomor 6 Tahun 2023 tentang PENETAPAN PERATURAN PEMERINTAH PENGGANTI UNDANG-UNDANG NOMOR 2 TAHUN 2022 TENTA"
         },
         {
           "frbr_uri": "/akn/id/act/uu/2020/11",
           "title": "Undang-Undang Nomor 11 Tahun 2020 tentang CIPTA KERJA"
+        },
+        {
+          "frbr_uri": "/akn/id/act/perpu/2022/2",
+          "title": "Peraturan Pemerintah Pengganti Undang-Undang Nomor 2 Tahun 2022 tentang Cipta Kerja"
         }
       ],
       "repealed_by": null,
       "status": "berlaku",
-      "title": "Undang-Undang Nomor 22 Tahun 2009 tentang Undang-Undang Nomor 22 Tahun 2009",
+      "title": "Undang-Undang Nomor 22 Tahun 2009 tentang LALU LINTAS DAN ANGKUTAN JALAN",
       "uri": "akn/id/act/uu/2009/22"
     },
     "akn/id/act/uu/2009/32": {
       "amended_by": [
         {
-          "frbr_uri": "/akn/id/act/perpu/2022/2",
-          "title": "Peraturan Pemerintah Pengganti Undang-Undang Nomor 2 Tahun 2022 tentang Cipta Kerja"
-        },
-        {
           "frbr_uri": "/akn/id/act/uu/2023/6",
           "title": "Undang-Undang Nomor 6 Tahun 2023 tentang PENETAPAN PERATURAN PEMERINTAH PENGGANTI UNDANG-UNDANG NOMOR 2 TAHUN 2022 TENTA"
         },
         {
           "frbr_uri": "/akn/id/act/uu/2020/11",
           "title": "Undang-Undang Nomor 11 Tahun 2020 tentang CIPTA KERJA"
+        },
+        {
+          "frbr_uri": "/akn/id/act/perpu/2022/2",
+          "title": "Peraturan Pemerintah Pengganti Undang-Undang Nomor 2 Tahun 2022 tentang Cipta Kerja"
         }
       ],
       "repealed_by": null,
       "status": "berlaku",
-      "title": "Undang-Undang Nomor 32 Tahun 2009 tentang Undang-Undang Nomor 32 Tahun 2009",
+      "title": "Undang-Undang Nomor 32 Tahun 2009 tentang PERLINDUNGAN DAN PENGELOLAAN LINGKUNGAN HIDUP",
       "uri": "akn/id/act/uu/2009/32"
     },
     "akn/id/act/uu/2009/41": {
       "amended_by": [
         {
-          "frbr_uri": "/akn/id/act/perpu/2022/2",
-          "title": "Peraturan Pemerintah Pengganti Undang-Undang Nomor 2 Tahun 2022 tentang Cipta Kerja"
-        },
-        {
           "frbr_uri": "/akn/id/act/uu/2023/6",
           "title": "Undang-Undang Nomor 6 Tahun 2023 tentang PENETAPAN PERATURAN PEMERINTAH PENGGANTI UNDANG-UNDANG NOMOR 2 TAHUN 2022 TENTA"
         },
         {
           "frbr_uri": "/akn/id/act/uu/2020/11",
           "title": "Undang-Undang Nomor 11 Tahun 2020 tentang CIPTA KERJA"
+        },
+        {
+          "frbr_uri": "/akn/id/act/perpu/2022/2",
+          "title": "Peraturan Pemerintah Pengganti Undang-Undang Nomor 2 Tahun 2022 tentang Cipta Kerja"
         }
       ],
       "repealed_by": null,
@@ -383,7 +386,7 @@
       "amended_by": [
         {
           "frbr_uri": "/akn/id/act/uu/2023/4",
-          "title": "Undang-Undang Nomor 4 Tahun 2023 tentang Undang-Undang Nomor 4 Tahun 2023"
+          "title": "Undang-Undang Nomor 4 Tahun 2023 tentang Pengembangan dan Penguatan Sektor Keuangan"
         }
       ],
       "repealed_by": null,
@@ -398,24 +401,24 @@
           "title": "Undang-Undang Nomor 63 Tahun 2024 tentang Perubahan Ketiga atas Undang-Undang Nomor 6 Tahun 2011 tentan Keimigrasian"
         },
         {
-          "frbr_uri": "/akn/id/act/perpu/2022/2",
-          "title": "Peraturan Pemerintah Pengganti Undang-Undang Nomor 2 Tahun 2022 tentang Cipta Kerja"
-        },
-        {
           "frbr_uri": "/akn/id/act/uu/2023/6",
           "title": "Undang-Undang Nomor 6 Tahun 2023 tentang PENETAPAN PERATURAN PEMERINTAH PENGGANTI UNDANG-UNDANG NOMOR 2 TAHUN 2022 TENTA"
         },
         {
           "frbr_uri": "/akn/id/act/uu/2020/11",
           "title": "Undang-Undang Nomor 11 Tahun 2020 tentang CIPTA KERJA"
+        },
+        {
+          "frbr_uri": "/akn/id/act/perpu/2022/2",
+          "title": "Peraturan Pemerintah Pengganti Undang-Undang Nomor 2 Tahun 2022 tentang Cipta Kerja"
         }
       ],
       "repealed_by": {
         "frbr_uri": "/akn/id/act/uu/2023/1",
-        "title": "Undang-Undang Nomor 1 Tahun 2023 tentang KITAB UNDANG-UNDANG HUKUM PIDANA"
+        "title": "Undang-Undang Nomor 1 Tahun 2023 tentang Kitab Undang-Undang Hukum Pidana"
       },
       "status": "berlaku",
-      "title": "Undang-Undang Nomor 6 Tahun 2011 tentang Undang-Undang Nomor 6 Tahun 2011",
+      "title": "Undang-Undang Nomor 6 Tahun 2011 tentang KEIMIGRASIAN",
       "uri": "akn/id/act/uu/2011/6"
     },
     "akn/id/act/uu/2012/12": {
@@ -428,24 +431,24 @@
     "akn/id/act/uu/2012/18": {
       "amended_by": [
         {
-          "frbr_uri": "/akn/id/act/perpu/2022/2",
-          "title": "Peraturan Pemerintah Pengganti Undang-Undang Nomor 2 Tahun 2022 tentang Cipta Kerja"
-        },
-        {
           "frbr_uri": "/akn/id/act/uu/2023/6",
           "title": "Undang-Undang Nomor 6 Tahun 2023 tentang PENETAPAN PERATURAN PEMERINTAH PENGGANTI UNDANG-UNDANG NOMOR 2 TAHUN 2022 TENTA"
         },
         {
           "frbr_uri": "/akn/id/act/uu/2020/11",
           "title": "Undang-Undang Nomor 11 Tahun 2020 tentang CIPTA KERJA"
+        },
+        {
+          "frbr_uri": "/akn/id/act/perpu/2022/2",
+          "title": "Peraturan Pemerintah Pengganti Undang-Undang Nomor 2 Tahun 2022 tentang Cipta Kerja"
         }
       ],
       "repealed_by": {
         "frbr_uri": "/akn/id/act/uu/2023/1",
-        "title": "Undang-Undang Nomor 1 Tahun 2023 tentang KITAB UNDANG-UNDANG HUKUM PIDANA"
+        "title": "Undang-Undang Nomor 1 Tahun 2023 tentang Kitab Undang-Undang Hukum Pidana"
       },
       "status": "berlaku",
-      "title": "Undang-Undang Nomor 18 Tahun 2012 tentang Undang-Undang Nomor 18 Tahun 2012",
+      "title": "Undang-Undang Nomor 18 Tahun 2012 tentang PANGAN",
       "uri": "akn/id/act/uu/2012/18"
     },
     "akn/id/act/uu/2013/20": {
@@ -469,7 +472,7 @@
       "amended_by": [],
       "repealed_by": {
         "frbr_uri": "/akn/id/act/uu/2023/1",
-        "title": "Undang-Undang Nomor 1 Tahun 2023 tentang KITAB UNDANG-UNDANG HUKUM PIDANA"
+        "title": "Undang-Undang Nomor 1 Tahun 2023 tentang Kitab Undang-Undang Hukum Pidana"
       },
       "status": "berlaku",
       "title": "Undang-Undang Nomor 35 Tahun 2014 tentang Perubahan atas Undang-Undang Nomor 23 Tahun 2002 Tentang Perlindungan Anak",
@@ -478,21 +481,21 @@
     "akn/id/act/uu/2014/7": {
       "amended_by": [
         {
-          "frbr_uri": "/akn/id/act/perpu/2022/2",
-          "title": "Peraturan Pemerintah Pengganti Undang-Undang Nomor 2 Tahun 2022 tentang Cipta Kerja"
-        },
-        {
           "frbr_uri": "/akn/id/act/uu/2023/6",
           "title": "Undang-Undang Nomor 6 Tahun 2023 tentang PENETAPAN PERATURAN PEMERINTAH PENGGANTI UNDANG-UNDANG NOMOR 2 TAHUN 2022 TENTA"
         },
         {
           "frbr_uri": "/akn/id/act/uu/2020/11",
           "title": "Undang-Undang Nomor 11 Tahun 2020 tentang CIPTA KERJA"
+        },
+        {
+          "frbr_uri": "/akn/id/act/perpu/2022/2",
+          "title": "Peraturan Pemerintah Pengganti Undang-Undang Nomor 2 Tahun 2022 tentang Cipta Kerja"
         }
       ],
       "repealed_by": null,
       "status": "berlaku",
-      "title": "Undang-Undang Nomor 7 Tahun 2014 tentang Undang-Undang Nomor 7 Tahun 2014",
+      "title": "Undang-Undang Nomor 7 Tahun 2014 tentang PERDAGANGAN",
       "uri": "akn/id/act/uu/2014/7"
     },
     "akn/id/act/uu/2019/19": {
@@ -515,7 +518,7 @@
       ],
       "repealed_by": null,
       "status": "berlaku",
-      "title": "Undang-Undang Nomor 3 Tahun 2020 tentang Perubahan Atas Undang-undang Nomor 4 Tahun 2009 Tentang Pertambangan Mineral da",
+      "title": "Undang-Undang Nomor 3 Tahun 2020 tentang Perubahan atas Undang-Undang Nomor 4 Tahun 2009 tentang Pertambangan Mineral da",
       "uri": "akn/id/act/uu/2020/3"
     },
     "akn/id/act/uu/2021/7": {
@@ -541,7 +544,7 @@
       "amended_by": [],
       "repealed_by": null,
       "status": "berlaku",
-      "title": "Undang-Undang Nomor 4 Tahun 2023 tentang Undang-Undang Nomor 4 Tahun 2023",
+      "title": "Undang-Undang Nomor 4 Tahun 2023 tentang Pengembangan dan Penguatan Sektor Keuangan",
       "uri": "akn/id/act/uu/2023/4"
     },
     "akn/id/act/uu/2023/6": {
@@ -556,7 +559,7 @@
         },
         {
           "frbr_uri": "/akn/id/act/uu/2025/18",
-          "title": "Undang-Undang Nomor 18 Tahun 2025 tentang Perubahan Ketiga Atas Undang-undang Nomor 10 Tahun 2009 Tentang Kepariwisataan"
+          "title": "Undang-Undang Nomor 18 Tahun 2025 tentang Perubahan Ketiga atas Undang-Undang Nomor 10 Tahun 2009 tentang Kepariwisataan"
         },
         {
           "frbr_uri": "/akn/id/act/uu/2025/16",
