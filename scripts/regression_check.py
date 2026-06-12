@@ -45,6 +45,11 @@ from legawa.config import load_settings  # noqa: E402
 from legawa.tools.cache import CachingPasalClient  # noqa: E402
 from legawa.tools.citations import _amendment_status, extract_citations  # noqa: E402
 from legawa.tools.pasal import PasalClient  # noqa: E402
+from legawa.tools.trusted_recent import (  # noqa: E402
+    TRUSTED_RECENT,
+    trusted_entry_warnings,
+    validate_trusted_entry,
+)
 
 
 BASELINE_PATH = Path(__file__).resolve().parent / "regression_baseline.json"
@@ -105,6 +110,31 @@ def _collect_fixture_citations() -> dict[str, list[str]]:
     return out
 
 
+def _collect_trusted_recent() -> dict[str, Any]:
+    entries: dict[str, Any] = {}
+    problems: list[str] = []
+    warnings: list[str] = []
+    for reference, entry in sorted(TRUSTED_RECENT.items()):
+        entry_problems = validate_trusted_entry(reference, entry)
+        if entry_problems:
+            problems.extend(f"{reference}: {problem}" for problem in entry_problems)
+        entry_warnings = trusted_entry_warnings(reference, entry)
+        if entry_warnings:
+            warnings.extend(f"{reference}: {warning}" for warning in entry_warnings)
+        entries[reference] = {
+            "title": entry.get("title") or "?",
+            "frbr_uri": entry.get("frbr_uri") or "?",
+            "status": entry.get("status") or "?",
+            "checked_on": entry.get("checked_on") or "?",
+            "expires_on": entry.get("expires_on") or "?",
+        }
+    return {
+        "entries": entries,
+        "problems": problems,
+        "warnings": warnings,
+    }
+
+
 def _build_report(pasal: Any) -> dict[str, Any]:
     uris = _collect_canonical_uris()
     probes = {uri: _probe_uri(pasal, uri) for uri in uris}
@@ -112,6 +142,7 @@ def _build_report(pasal: Any) -> dict[str, Any]:
         "schema_version": 1,
         "canonical_probes": probes,
         "fixture_citations": _collect_fixture_citations(),
+        "trusted_recent": _collect_trusted_recent(),
     }
 
 
@@ -191,10 +222,19 @@ def main(argv: list[str]) -> int:
 
     baseline = json.loads(BASELINE_PATH.read_text(encoding="utf-8"))
     drift = _diff(baseline, report)
+    trusted = report.get("trusted_recent", {})
+    trusted_problems = trusted.get("problems", [])
+    trusted_warnings = trusted.get("warnings", [])
 
     if as_json:
         print(json.dumps(drift, indent=2, ensure_ascii=False))
     else:
+        for warning in trusted_warnings:
+            print(f"WARN: {warning}")
+        if trusted_problems:
+            print("INVALID trusted_recent entries:")
+            for problem in trusted_problems:
+                print(f"  - {problem}")
         if not _has_drift(drift):
             print(
                 f"OK: no drift across {len(report['canonical_probes'])} canonical probes "
@@ -216,6 +256,11 @@ def main(argv: list[str]) -> int:
                 "    python scripts/regression_check.py --update-baseline"
             )
 
+    if trusted_problems:
+        if as_json:
+            for problem in trusted_problems:
+                print(f"INVALID trusted_recent entry: {problem}", file=sys.stderr)
+        return 2
     return 0 if not _has_drift(drift) else 1
 
 

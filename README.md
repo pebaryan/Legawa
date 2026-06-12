@@ -84,6 +84,13 @@ python scripts/regression_check.py --update-baseline  # snapshot current state
 
 Does NOT re-run the live agents (those depend on the user's local llama.cpp + pasal.id credentials). Use it after model swaps or before publishing whitepapers to catch corpus drift early.
 
+The same script also validates `src/legawa/tools/trusted_recent.py` for structural issues and freshness warnings. For ad-hoc maintenance of trusted overrides:
+
+```bash
+python scripts/validate_trusted_recent.py
+python scripts/validate_trusted_recent.py --template "Perpres 9/2027"
+```
+
 ## Roadmap
 
 - [ ] **Pemantau Berita** — agen kelima untuk monitoring isu komisi dari sumber berita Indonesia (Kompas, Tempo, Detik, Antara). SMALL untuk klasifikasi & ekstraksi isu, BIG untuk daily/weekly digest dengan tautan ke peraturan terkait via pasal.id. Tambahkan setelah keempat agen pertama dipakai di lapangan.
