@@ -58,6 +58,23 @@ Mohon bantuan agar dinas terkait segera turun mengecek dan membersihkan saluran 
 Hormat kami,
 Warga RW 04"""
 
+SURAT_MBG_EXAMPLE = """Yth. Bapak/Ibu Anggota DPR RI,
+
+Saya Sulastri, orang tua murid SDN 2 Karangrejo. Hari Selasa lalu, 27 anak di sekolah \
+kami mengalami mual dan muntah setelah menyantap menu Makan Bergizi Gratis dari dapur \
+SPPG kecamatan. Tiga anak sampai dirawat di puskesmas. Menurut guru, lauk ayam yang \
+dibagikan berbau asam karena makanan baru tiba di sekolah lewat pukul 11 padahal \
+dimasak sejak subuh.
+
+Kami para orang tua sebenarnya mendukung program MBG karena sangat membantu, tetapi \
+kami takut kejadian ini terulang. Kami mohon Bapak/Ibu memperjuangkan: (1) pemeriksaan \
+standar keamanan pangan dapur SPPG di daerah kami, (2) kejelasan tanggung jawab dan \
+biaya pengobatan anak-anak yang keracunan, dan (3) jadwal distribusi yang tidak \
+membiarkan makanan terlalu lama di perjalanan.
+
+Hormat kami,
+Sulastri, perwakilan paguyuban orang tua murid SDN 2 Karangrejo"""
+
 
 def _llm_label(llm: object) -> str:
     """Return the model label for both HFLLM and OpenAI-compatible LLM objects."""
@@ -701,7 +718,7 @@ def build_app() -> gr.Blocks:
                 surat_act = _activity_chatbot()
                 surat_out = gr.Markdown(label="Hasil")
                 gr.Examples(
-                    examples=[[SURAT_EXAMPLE, True]],
+                    examples=[[SURAT_EXAMPLE, True], [SURAT_MBG_EXAMPLE, True]],
                     inputs=[surat_text, surat_verify],
                     label="Contoh cepat untuk juri",
                 )
