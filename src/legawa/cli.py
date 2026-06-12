@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 from typing import Optional
@@ -24,6 +25,7 @@ from .agents import analis_ruu, peneliti, penyusun, surat
 from .config import load_settings
 from .llm import LLMPool
 from .tools.cache import CachingPasalClient
+from .tools.offline_pasal import OfflinePasalClient
 from .tools.pasal import PasalClient
 
 
@@ -36,9 +38,13 @@ app = typer.Typer(
 console = Console()
 
 
-def _bootstrap(use_cache: bool = True) -> tuple[LLMPool, PasalClient | CachingPasalClient]:
+def _bootstrap(use_cache: bool = True) -> tuple[LLMPool, PasalClient | CachingPasalClient | OfflinePasalClient]:
     settings = load_settings()
     pool = LLMPool(settings)
+    offline_db = os.environ.get("LEGAWA_OFFLINE_PASAL_DB")
+    offline_enabled = os.environ.get("LEGAWA_PASAL_OFFLINE", "").strip().lower() in {"1", "true", "yes", "on"}
+    if offline_db or offline_enabled:
+        return pool, OfflinePasalClient(offline_db)
     raw = PasalClient(settings)
     pasal = CachingPasalClient(raw) if use_cache else raw
     return pool, pasal
